@@ -1,13 +1,16 @@
 ---
-const today = new Date();
+import { WEDDING } from '../type/string';
+import moment from 'moment'
 ---
 
-<footer>
-	&copy; {today.getFullYear()} YOUR NAME HERE. All rights reserved.
+<footer class="nes-dialog is-dark is-rounded m-0">
+	&copy; 김진영, 명승희 올림<br>
+    {moment(WEDDING.TIME, 'YYYYMMDDHHmmss').format('YYYY년 MM월 DD일 hh시')}<br>{WEDDING.HALL}<br>
+    {WEDDING.ADDRESS}
 </footer>
 <style>
 	footer {
-		padding: 25px;
+		padding: 15px;
 		text-align: center;
 	}
 </style>

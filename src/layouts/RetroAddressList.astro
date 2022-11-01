@@ -1,0 +1,38 @@
+---
+import RetroNaviButton from '../components/RetroNaviButton.astro';
+import { NAVI_TYPE, WEDDING } from '../type/string';
+import moment from 'moment';
+---
+
+<ul class="flex flex-col nes-list">
+<li>
+  <div>
+    <i class="mr-4 mt-2 mb-2 nes-icon star"></i>
+    <strong>주소</strong>
+  </div>
+  <div class="pl-8"><strong>{`${WEDDING.HALL}`}</strong></div>
+  <div class="pl-8">{`${WEDDING.ADDRESS}`}</div>
+</li>
+<li>
+  <div>
+    <i class="mr-4 mt-2 mb-2 nes-icon star"></i>
+    <strong>일시</strong>
+  </div>
+  <div class="pl-8"><strong>{moment(WEDDING.TIME, 'YYYYMMDDHHmmss').format('YYYY년 MM월 DD일 hh시')}</strong></div>
+</li>
+<li>
+  <div class="mb-4">
+    <i class="mr-4 mt-2 mb-2 nes-icon star"></i>
+    <strong>지도 & 네비</strong>
+  </div>
+  <div class="pl-8">
+    <RetroNaviButton title="T 맵" scheme={NAVI_TYPE.T_MAP.scheme}>
+    </RetroNaviButton>
+    <RetroNaviButton title="카카오" scheme={NAVI_TYPE.KAKAO_MAP.scheme}>
+    </RetroNaviButton>
+    <RetroNaviButton title="네이버" scheme={NAVI_TYPE.NAVER_MAP.scheme}>
+    </RetroNaviButton>
+    <img src="https://mblogthumb-phinf.pstatic.net/MjAxOTEyMTBfMTMx/MDAxNTc1OTgyNDA2Mjk0.Dzm42lQZKtNuECaZQAkJ-jZJDzt2CuvxdIZzK6HUQ5Ig.l_qkBpwYbwVyn3eyqqYXVI1QtZxkKgt_AJPrL0UkfuIg.JPEG.pemberley2/KakaoTalk_20191207_123258515.jpg?type=w800"/>
+  </div>
+</li>
+</ul>
