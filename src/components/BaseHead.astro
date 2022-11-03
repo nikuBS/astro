@@ -37,3 +37,9 @@ const { title, description, image = '/placeholder-social.jpg' } = Astro.props;
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
+
+<!-- 3rd library -->
+<script type="module" src={Astro.hoist}>
+import '../../node_modules/jquery/dist/jquery';
+</script>
+<script type="module" src="/swipeview.js"/>
