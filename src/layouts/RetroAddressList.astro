@@ -3,36 +3,50 @@ import RetroNaviButton from '../components/RetroNaviButton.astro';
 import { NAVI_TYPE, WEDDING } from '../type/string';
 import moment from 'moment';
 ---
+<style>
 
-<ul class="flex flex-col nes-list">
+</style>
+<ul class='flex flex-col nes-list'>
 <li>
   <div>
-    <i class="mr-4 mt-2 mb-2 nes-icon star"></i>
+    <i class='mr-4 mt-2 mb-2 nes-icon star'></i>
     <strong>주소</strong>
   </div>
-  <div class="pl-8"><strong>{`${WEDDING.HALL}`}</strong></div>
-  <div class="pl-8">{`${WEDDING.ADDRESS}`}</div>
+  <div class='pl-8'><strong>{`${WEDDING.HALL}`}</strong></div>
+  <div class='pl-8'>{`${WEDDING.ADDRESS}`}</div>
 </li>
 <li>
   <div>
-    <i class="mr-4 mt-2 mb-2 nes-icon star"></i>
+    <i class='mr-4 mt-2 mb-2 nes-icon star'></i>
     <strong>일시</strong>
   </div>
-  <div class="pl-8"><strong>{moment(WEDDING.TIME, 'YYYYMMDDHHmmss').format('YYYY년 MM월 DD일 hh시')}</strong></div>
+  <div class='pl-8'>
+    <strong>{moment(WEDDING.TIME, 'YYYYMMDDHHmmss').format('YYYY년 MM월 DD일 hh시')}</strong>
+    <br>
+    (달력에 파란색 표시를 확인하세요)
+  </div>
+  <div class='pl-8'>
+    <div class='' id='date-picker'></div>
+    <script>
+      const $picker = $('#date-picker').datepicker();
+      $picker.datepicker('setDate', '20221126');
+    </script>
+  </div>
 </li>
 <li>
-  <div class="mb-4">
-    <i class="mr-4 mt-2 mb-2 nes-icon star"></i>
+  <div class='mb-4'>
+    <i class='mr-4 mt-2 mb-2 nes-icon star'></i>
     <strong>지도 & 네비</strong>
   </div>
-  <div class="pl-8">
-    <RetroNaviButton title="T 맵" scheme={NAVI_TYPE.T_MAP.scheme}>
+  <div class='pl-8'>
+    <RetroNaviButton title='T 맵' scheme='{NAVI_TYPE.T_MAP.scheme}'>
     </RetroNaviButton>
-    <RetroNaviButton title="카카오" scheme={NAVI_TYPE.KAKAO_MAP.scheme}>
+    <RetroNaviButton title='카카오' scheme='{NAVI_TYPE.KAKAO_MAP.scheme}'>
     </RetroNaviButton>
-    <RetroNaviButton title="네이버" scheme={NAVI_TYPE.NAVER_MAP.scheme}>
+    <RetroNaviButton title='네이버' scheme='{NAVI_TYPE.NAVER_MAP.scheme}'>
     </RetroNaviButton>
-    <img src="https://mblogthumb-phinf.pstatic.net/MjAxOTEyMTBfMTMx/MDAxNTc1OTgyNDA2Mjk0.Dzm42lQZKtNuECaZQAkJ-jZJDzt2CuvxdIZzK6HUQ5Ig.l_qkBpwYbwVyn3eyqqYXVI1QtZxkKgt_AJPrL0UkfuIg.JPEG.pemberley2/KakaoTalk_20191207_123258515.jpg?type=w800"/>
+    <img
+      src='https://mblogthumb-phinf.pstatic.net/MjAxOTEyMTBfMTMx/MDAxNTc1OTgyNDA2Mjk0.Dzm42lQZKtNuECaZQAkJ-jZJDzt2CuvxdIZzK6HUQ5Ig.l_qkBpwYbwVyn3eyqqYXVI1QtZxkKgt_AJPrL0UkfuIg.JPEG.pemberley2/KakaoTalk_20191207_123258515.jpg?type=w800' />
   </div>
 </li>
 </ul>
