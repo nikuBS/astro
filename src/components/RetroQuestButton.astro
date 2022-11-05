@@ -1,0 +1,7 @@
+---
+const { id, target, invisible } = Astro.props
+---
+<div id={id || ''} class='mb-8 px-8 gap-4 flex-u is-rounded is-dark' style={!invisible ? '' : 'display: none'}>
+<button type='button' data-type='ok' data-target={target} class='flex-1 nes-btn is-primary quest'>다음</button>
+<button type='button' data-type='cancel' data-target={target} class='flex-1 nes-btn quest'>취소</button>
+</div>

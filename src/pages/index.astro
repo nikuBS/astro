@@ -3,8 +3,10 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import RetroMessageBox from '../components/RetroMessageBox.astro';
+import RetroGalleryBtn from '../components/RetroGalleryBtn.astro';
+import RetroQuestButton from '../components/RetroQuestButton.astro';
 import RetroAddressList from '../layouts/RetroAddressList.astro';
-import RetroGallery from '../layouts/RetroGallery.astro';
+import RetroNaviButton from '../components/RetroNaviButton.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../config';
 import { WEDDING, NAVI_TYPE } from '../type/string';
 ---
@@ -16,16 +18,21 @@ import { WEDDING, NAVI_TYPE } from '../type/string';
 <body>
 <main class="bg-slate-400 overflow-y-scroll">
   <div class="nes-container w-full max-w-3xl m-auto p-0">
-    <img src="https://rotojuna.wedding/bg-logo.57cb6202_Z1HpKFw.webp" alt="김진영y명승희"/>
+    <img src={new URL('/custom/main.jpg', Astro.url)} alt="김진영y명승희"/>
     <!--  <img src="/main.png" alt="김진영y명승희"/> -->
-    <RetroMessageBox title="초대장">
+    <RetroMessageBox title="원정대 모집 중!" id='start'>
+      <img src={new URL('/custom/inini.png', Astro.url)} alt="김진영y명승희"/>
+      <RetroQuestButton target='invitation'></RetroQuestButton>
+    </RetroMessageBox>
+    <RetroMessageBox title="원정대 초대장" id='invitation'>
       <p>먼 훗날 무지개 저 너머에 <br>우리가 찾던 꿈 거기 없다 해도<br>그대와 나 함께 보내는 지금 이 시간들이내겐 그보다 더 소중한 걸</p>
       <p>- 성시경, 두 사람 -</p>
       <p>인생의 모든 날, 모든 순간을 <br> 함께하고 싶은 사람을 만나 <br>모험을 시작하려고 합니다.</p>
       <p>모험 중에 다양한 미션을 해결해 나가며<br> 앞으로 계속 나아가고자 하는데,</p>
       <p>쉬울수도 험난할 수도 있는 여정이기에 <br> 귀한 걸음 해주셔서 큰 응원을 받고 <br> 모험을 떠나고자 합니다.</p>
+      <RetroQuestButton target='people'></RetroQuestButton>
     </RetroMessageBox>
-    <RetroMessageBox title="모험자">
+    <RetroMessageBox title="원정대 대장" id='people'>
       <div class="border-y-2"></div>
       <p>김인선·강민순 의 아들 <strong>진영</strong></p>
       <p>명노국·홍계숙 의 딸  <strong>승희</strong></p>
@@ -36,17 +43,74 @@ import { WEDDING, NAVI_TYPE } from '../type/string';
           margin: 10px auto;
           text-align: center;
         }
-
       </style>
+      <RetroQuestButton target='navi'></RetroQuestButton>
     </RetroMessageBox>
-    <RetroMessageBox title="오시는 길">
+    <RetroMessageBox title="집합 장소" id='navi'>
       <RetroAddressList></RetroAddressList>
+      <RetroQuestButton id='navi_quest' target='photo' invisible={true}></RetroQuestButton>
     </RetroMessageBox>
-    <RetroMessageBox title="사진첩">
-      <RetroGallery></RetroGallery>
+    <RetroMessageBox title="원정대 대장들의 공간" id='photo'>
+      <RetroGalleryBtn title='대장들의 공간으로 순간이동!'url='https://self.cryucompany.com/p/X5Gibja25MXQioZTt6gP'></RetroGalleryBtn>
+      <RetroQuestButton target='sponsor'></RetroQuestButton>
+    </RetroMessageBox>
+    <RetroMessageBox title="원정대 후원" id='sponsor'>
+      <div class="bg-slate-700 rounded-md p-2 mb-2">
+        계좌번호: 카카오뱅크 3333-05-1247073<br>예금주: 김진영
+      </div>
+      <div class="bg-slate-700 rounded-md p-2 mt-2">
+        계좌번호: 카카오뱅크 3333-11-7294923<br>예금주: 명승희
+      </div>
+      <div class='flex mt-4'>
+        <RetroNaviButton title='김진영 카카오페이' scheme='https://qr.kakaopay.com/281006011000084391377150'></RetroNaviButton>
+        <RetroNaviButton title='명승희 카카오페이' scheme='https://qr.kakaopay.com/281006011000000011974615'></RetroNaviButton>
+      </div>
     </RetroMessageBox>
   </div>
+  <dialog class='nes-dialog is-dark is-rounded' id='start_dig'>
+    <form method='dialog'>
+      <p class='title'>주의!!</p>
+      <p>강제 소환 됩니다.</p>
+      <menu class='dialog-menu'>
+        <button data-id='ok' class='w-full nes-btn is-primary'>소환</button>
+      </menu>
+    </form>
+  </dialog>
 </main>
 <Footer/>
 </body>
 </html>
+<script>
+import RetroQuestButton from '../components/RetroQuestButton.astro';
+import RetroNaviButton from '../components/RetroNaviButton.astro';
+export default {
+  components: { RetroNaviButton, RetroQuestButton }
+}
+const $startDig = $('#start_dig');
+const $questBtn = $('button.quest');
+$startDig.find('[data-id=ok]').on('click', (event) => {
+  event.preventDefault()
+  $startDig[0].close();
+  const $target = $startDig.data('elem');
+  $target.siblings('button.quest[data-type=ok]').click();
+});
+$questBtn.on('click', (event) => {
+  event.preventDefault();
+  const $curTarget = $(event.currentTarget);
+  const type = $curTarget.data('type');
+  const optTarget = $curTarget.data('target');
+  if (type === 'ok') {
+    const target = `#${optTarget}`;
+    if (optTarget === 'invitation') {
+      $('#start').hide();
+    } else {
+      $curTarget.hide();
+      $curTarget.siblings('button').hide();
+    }
+    $(target).show();
+  } else {
+    $startDig[0].showModal();
+    $startDig.data('elem', $curTarget);
+  }
+});
+</script>

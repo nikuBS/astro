@@ -253,6 +253,9 @@ img, video {
 .flex {
     display: flex !important
 }
+.flex-u {
+    display: flex;
+}
 
 .hidden {
     display: none !important
@@ -571,6 +574,9 @@ img:where(.astro-HQAFPWCH) {
 
 html, body, main {
     width: 100%;
-    height: 100%;
     word-break: keep-all
+}
+
+.kakao-i {
+    background-image: url('/kkao.png');
 }

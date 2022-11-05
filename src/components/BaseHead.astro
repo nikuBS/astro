@@ -3,13 +3,15 @@
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
 import 'nes.css/css/nes.min.css';
-import 'jquery-ui/dist/themes/base/jquery-ui.css';
 
 export interface Props {
 	title: string;
 	description: string;
 	image?: string;
 }
+
+const jquery = '/jquery.js';
+const swipeView = '/swipeview.js'
 
 const { title, description, image = '/placeholder-social.jpg' } = Astro.props;
 ---
@@ -25,7 +27,6 @@ const { title, description, image = '/placeholder-social.jpg' } = Astro.props;
 <meta name="title" content={title} />
 <meta name="description" content={description} />
 
-<script type="module" src="/jquery.js"/>
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
@@ -33,12 +34,13 @@ const { title, description, image = '/placeholder-social.jpg' } = Astro.props;
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={new URL(image, Astro.url)} />
-
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
-<script type="module" src="/swipeview.js"/>
-<script type="module" src="/jquery-ui.js/">
+
+<!-- 3rd part -->
+<script type="module" src={new URL(jquery, Astro.url)}/>
+<script type="module" src={new URL(swipeView, Astro.url)}/>

@@ -21,27 +21,30 @@ import moment from 'moment';
     <strong>일시</strong>
   </div>
   <div class='pl-8'>
-    <strong>{moment(WEDDING.TIME, 'YYYYMMDDHHmmss').format('YYYY년 MM월 DD일 hh시')}</strong>
-    <br>
-    (달력에 파란색 표시를 확인하세요)
+    <style>
+      strong.date-i {
+        font-size: 20px;
+      }
+    </style>
+    <strong class='date-i'>{moment(WEDDING.TIME, 'YYYYMMDDHHmmss').format('YYYY년 MM월 DD일 hh시')}</strong>
   </div>
   <div class='pl-8'>
-    <div class='' id='date-picker'></div>
+    <img src={new URL('/custom/calendar.png', Astro.url)} alt="달력"/>
     <script>
-      $.datepicker.setDefaults({
-        dateFormat: 'yymmdd',
-        prevText: '이전 달',
-        nextText: '다음 달',
-        monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-        monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-        dayNames: ['일', '월', '화', '수', '목', '금', '토'],
-        dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
-        dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
-        showMonthAfterYear: true,
-        yearSuffix: '년'
-      });
-      const $picker = $('#date-picker').datepicker();
-      $picker.datepicker('setDate', '20221126');
+      // $.datepicker.setDefaults({
+      //   dateFormat: 'yymmdd',
+      //   prevText: '이전 달',
+      //   nextText: '다음 달',
+      //   monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      //   monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      //   dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+      //   dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+      //   dayNamesMin: ['일', '월', '화', '수', '목', '금', '토'],
+      //   showMonthAfterYear: true,
+      //   yearSuffix: '년'
+      // });
+      // const $picker = $('#date-picker').datepicker();
+      // $picker.datepicker('setDate', '20221126');
     </script>
   </div>
 </li>
@@ -49,16 +52,49 @@ import moment from 'moment';
   <div class='mb-4'>
     <i class='mr-4 mt-2 mb-2 nes-icon star'></i>
     <strong>지도 & 네비</strong>
+    <p>(아래 지도를 꼭 눌러주세요)</p>
   </div>
   <div class='pl-8'>
-    <RetroNaviButton title='T 맵' scheme='{NAVI_TYPE.T_MAP.scheme}'>
-    </RetroNaviButton>
-    <RetroNaviButton title='카카오' scheme='{NAVI_TYPE.KAKAO_MAP.scheme}'>
-    </RetroNaviButton>
-    <RetroNaviButton title='네이버' scheme='{NAVI_TYPE.NAVER_MAP.scheme}'>
-    </RetroNaviButton>
-    <img
-      src='https://mblogthumb-phinf.pstatic.net/MjAxOTEyMTBfMTMx/MDAxNTc1OTgyNDA2Mjk0.Dzm42lQZKtNuECaZQAkJ-jZJDzt2CuvxdIZzK6HUQ5Ig.l_qkBpwYbwVyn3eyqqYXVI1QtZxkKgt_AJPrL0UkfuIg.JPEG.pemberley2/KakaoTalk_20191207_123258515.jpg?type=w800' />
+    <div class='hidden' data-id='btn_group'>
+      <RetroNaviButton title='T 맵' scheme='{NAVI_TYPE.T_MAP.scheme}'>
+      </RetroNaviButton>
+      <RetroNaviButton title='카카오' scheme='{NAVI_TYPE.KAKAO_MAP.scheme}'>
+      </RetroNaviButton>
+      <RetroNaviButton title='네이버' scheme='{NAVI_TYPE.NAVER_MAP.scheme}'>
+      </RetroNaviButton>
+    </div>
+    <div data-id='simple_map'>
+      <img src={new URL('/custom/smap.png', Astro.url)} alt="약도"/>
+    </div>
+    <script>
+      let mapBtnFlag = false;
+      const $simpleMap = $('div[data-id=simple_map]');
+      const $dialog = $('#dialog-default');
+      const $btnGroup = $('[data-id=btn_group]');
+      $simpleMap.on('click', (event) => {
+        event.preventDefault();
+        if (!mapBtnFlag) {
+          $dialog[0].showModal();
+        }
+      });
+      $dialog.find('[data-id=ok]').on('click', (event) => {
+        event.preventDefault();
+        $btnGroup.removeClass('hidden').addClass('flex');
+        $dialog[0].close();
+        $('#navi_quest').show()
+        mapBtnFlag = true;
+      });
+    </script>
+    <dialog class='nes-dialog is-dark is-rounded' id='dialog-default'>
+      <form method='dialog'>
+        <p class='title'>안내!</p>
+        <p>지도 버튼을 활성화 하시겠습니까?</p>
+        <menu class='dialog-menu'>
+          <button data-id='ok' class='nes-btn is-primary'>확인</button>
+          <button data-id='cancel' class='nes-btn'>취소</button>
+        </menu>
+      </form>
+    </dialog>
   </div>
 </li>
 </ul>

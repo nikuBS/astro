@@ -2,6 +2,9 @@
 const { title, scheme } = Astro.props
 ---
 
-<a class="flex-1" href={`${scheme}`}>
-  <button class="w-full nes-btn text-ellipsis">{title}</button>
+<a class="flex-1" href={`${scheme}`} target='_blank'>
+  <button class="w-full nes-btn text-ellipsis">
+    <i class="nes-icon coin is-small"></i>
+    <div> {title} </div>
+  </button>
 </a>
