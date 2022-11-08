@@ -52,7 +52,6 @@ import moment from 'moment';
   <div class='mb-4'>
     <i class='mr-4 mt-2 mb-2 nes-icon star'></i>
     <strong>지도 & 네비</strong>
-    <p>(아래 지도를 꼭 눌러주세요)</p>
   </div>
   <div class='pl-8'>
     <div class='hidden' data-id='btn_group'>
@@ -71,11 +70,16 @@ import moment from 'moment';
       const $simpleMap = $('div[data-id=simple_map]');
       const $dialog = $('#dialog-default');
       const $btnGroup = $('[data-id=btn_group]');
-      $simpleMap.on('click', (event) => {
-        event.preventDefault();
-        if (!mapBtnFlag) {
-          $dialog[0].showModal();
+      $(window).on('scroll', () => {
+        const scrT = $(window).scrollTop();
+        const naviTp = $('#navi').offset().top;
+        const mapHt = $simpleMap.height();
+        if (naviTp < scrT && scrT <= (naviTp + mapHt)) {
+          if (!mapBtnFlag && !$dialog[0].open) {
+            $dialog[0].showModal();
+          }
         }
+        return false;
       });
       $dialog.find('[data-id=ok]').on('click', (event) => {
         event.preventDefault();
