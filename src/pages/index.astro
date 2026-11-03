@@ -18,10 +18,10 @@ import { WEDDING, NAVI_TYPE } from '../type/string';
 <body>
 <main class="bg-slate-400 overflow-y-scroll">
   <div class="nes-container w-full max-w-3xl m-auto p-0">
-    <img src={new URL('/custom/main.jpg', Astro.url)} alt="김진영y명승희"/>
-    <!--  <img src="/main.png" alt="김진영y명승희"/> -->
+    <img src={new URL('/custom/main.jpg', Astro.url)} alt="홍길동y성춘향"/>
+    <!--  <img src="/main.png" alt="홍길동y성춘향"/> -->
     <RetroMessageBox title="원정대 모집 중!" id='start'>
-      <img src={new URL('/custom/inini.png', Astro.url)} alt="김진영y명승희"/>
+      <img src={new URL('/custom/inini.png', Astro.url)} alt="홍길동y성춘향"/>
       <RetroQuestButton target='invitation'></RetroQuestButton>
     </RetroMessageBox>
     <RetroMessageBox title="원정대 초대장" id='invitation'>
@@ -33,8 +33,8 @@ import { WEDDING, NAVI_TYPE } from '../type/string';
     </RetroMessageBox>
     <RetroMessageBox title="원정대 대장" id='people'>
       <div class="border-y-2"></div>
-      <p>김인선·강민순 의 아들 <strong>진영</strong></p>
-      <p>명노국·홍계숙 의 딸  <strong>승희</strong></p>
+      <p>홍판서·김씨 의 아들 <strong>길동</strong></p>
+      <p>성참판·월매 의 딸  <strong>춘향</strong></p>
       <div class="border-y-2"></div>
       <div class="p-2"></div>
       <style>
@@ -50,19 +50,19 @@ import { WEDDING, NAVI_TYPE } from '../type/string';
       <RetroQuestButton id='navi_quest' target='photo' invisible={true}></RetroQuestButton>
     </RetroMessageBox>
     <RetroMessageBox title="원정대 대장들의 공간" id='photo'>
-      <RetroGalleryBtn title='대장들의 공간으로 순간이동!'url='https://self.cryucompany.com/p/X5Gibja25MXQioZTt6gP'></RetroGalleryBtn>
+      <RetroGalleryBtn title='대장들의 공간으로 순간이동!'url='#'></RetroGalleryBtn>
       <RetroQuestButton target='sponsor'></RetroQuestButton>
     </RetroMessageBox>
     <RetroMessageBox title="원정대 후원" id='sponsor'>
       <div class="bg-slate-700 rounded-md p-2 mb-2">
-        계좌번호: 카카오뱅크 3333-05-1247073<br>예금주: 김진영
+        계좌번호: 카카오뱅크 0000-00-0000000 (예시)<br>예금주: 홍길동
       </div>
       <div class="bg-slate-700 rounded-md p-2 mt-2">
-        계좌번호: 카카오뱅크 3333-11-7294923<br>예금주: 명승희
+        계좌번호: 카카오뱅크 0000-00-0000000 (예시)<br>예금주: 성춘향
       </div>
       <div class='flex mt-4'>
-        <RetroNaviButton title='김진영 카카오페이' scheme='https://qr.kakaopay.com/281006011000084391377150'></RetroNaviButton>
-        <RetroNaviButton title='명승희 카카오페이' scheme='https://qr.kakaopay.com/281006011000000011974615'></RetroNaviButton>
+        <RetroNaviButton title='홍길동 카카오페이' scheme='#'></RetroNaviButton>
+        <RetroNaviButton title='성춘향 카카오페이' scheme='#'></RetroNaviButton>
       </div>
     </RetroMessageBox>
   </div>
