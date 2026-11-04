@@ -152,6 +152,26 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
 .gb form button { background: var(--gold); color: var(--ink); border: 0; padding: 0 12px; font-weight: 700; font-size: 13px; }
 .credits { text-align: center; color: var(--muted); font-size: 13px; line-height: 1.8; padding: 8px 0; }
 .mine { background: var(--green); color: var(--ink); border: 2px solid var(--ink); padding: 12px; font-weight: 700; }
+.home-sc { overflow-y: auto; padding: 56px 16px 24px; gap: 14px; }
+.hero { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 6px 0 2px; }
+.hero canvas { width: 160px; height: 100px; image-rendering: pixelated; }
+.hero h2 { font-family: var(--display); font-weight: 400; font-size: 30px; margin: 0; line-height: 1.15; text-wrap: balance; }
+.hero .sub { color: var(--muted); font-size: 13px; margin: 0; }
+.ev { border: 3px solid var(--gold); background: #241F3A; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.ev-t { font-family: var(--pixel); font-size: 10px; color: var(--gold); margin: 0; }
+.ev-d { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.ev-prize { margin: 0; font-size: 13px; line-height: 1.6; background: #1B1B2F; padding: 8px 10px; }
+.ev .btn { width: 100%; }
+.rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rank li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; background: #2A2A45; padding: 8px 10px; font-size: 13px; }
+.rank li .no { font-family: var(--pixel); font-size: 10px; color: var(--muted); }
+.rank li:nth-child(1) .no { color: var(--gold); } .rank li:nth-child(2) .no { color: #C9CDD6; } .rank li:nth-child(3) .no { color: #D49A6A; }
+.rank li .sc { font-family: var(--pixel); font-size: 9px; color: var(--gold); white-space: nowrap; }
+.rank li.me { outline: 2px solid var(--green); }
+.rank-me { margin: 0; text-align: center; font-size: 15px; }
+.rank-me b { font-family: var(--display); font-size: 28px; color: var(--gold); font-weight: 400; }
+.nick { display: flex; gap: 6px; }
+.nick input { flex: 1; min-width: 0; background: #0F0F1C; border: 2px solid var(--line); padding: 10px; font-size: 14px; color: var(--fg); }
 .info-ov { position: absolute; inset: 0; background: #1B1B2F; z-index: 25; overflow-y: auto; padding: 50px 16px 24px; display: flex; flex-direction: column; gap: 12px; }
 .info-ov .close { align-self: flex-end; background: transparent; border: 2px solid var(--line); padding: 6px 10px; font-size: 12px; }
 
@@ -201,7 +221,7 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
 
         <div class="ed-body" data-panel="0">
           <h3>미니게임 장르를 고르세요</h3>
-          <p class="hint">장르마다 스토리·배경·조작이 달라집니다. 모든 게임은 10~20초 안에 끝나고, 3번 실패하면 자동으로 통과합니다.</p>
+          <p class="hint">장르마다 스토리·배경·조작이 달라집니다. 하객은 예식 정보를 먼저 보고, 원하는 사람만 10~20초 게임에 도전해 랭킹에 오릅니다.</p>
           <div class="tpl">
             <button type="button" data-tpl="rpg" aria-pressed="true"><canvas width="16" height="16" data-thumb="rpg"></canvas><div><strong>마왕성 보스전 <em>턴제 RPG</em></strong><span>타이밍 탭으로 크리티컬, 커플 사진이 나오는 합동기</span></div></button>
             <button type="button" data-tpl="artillery" aria-pressed="false"><canvas width="16" height="16" data-thumb="artillery"></canvas><div><strong>부케 포격 작전 <em>포격</em></strong><span>끌어서 조준하고 바람을 읽어 마왕성 성벽을 무너뜨리기</span></div></button>
@@ -209,8 +229,6 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
             <button type="button" class="soon" disabled><canvas width="16" height="16" data-thumb="maze"></canvas><div><strong>물풍선 미로 <em>COMING SOON</em></strong><span>연쇄 폭발로 길을 열어 신부에게</span></div></button>
             <button type="button" class="soon" disabled><canvas width="16" height="16" data-thumb="puzzle"></canvas><div><strong>사진 블록 퍼즐 <em>COMING SOON</em></strong><span>블록을 맞출수록 웨딩 사진이 완성</span></div></button>
           </div>
-        </div>
-          <p class="hint">출시 예정: 우주 탐험 · 레이싱 · 낚시</p>
         </div>
 
         <div class="ed-body" data-panel="1" hidden>
@@ -245,9 +263,14 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
         </div>
 
         <div class="ed-body" data-panel="3" hidden>
+          <h3>도전 이벤트</h3>
+          <p class="hint">하객 점수로 랭킹을 매기고, 예식 전날 마감합니다. 선물은 두 분이 직접 전달합니다.</p>
+          <div class="field"><label for="f-prize">순위별 선물</label><textarea id="f-prize" rows="3">1등 호텔 뷔페 식사권
+2등 커피 기프티콘 5만원
+3등 커피 기프티콘 1만원</textarea></div>
           <h3>이용권</h3>
-          <button type="button" class="plan" data-plan="free" aria-pressed="false"><span class="p">무료</span><small>공개 30일 · 사진 3장 · 엔딩에 서비스 로고</small></button>
-          <button type="button" class="plan" data-plan="premium" aria-pressed="true"><span class="p">프리미엄 · 90일</span><small>사진 10장 · 전체 파츠 · 방명록 · 로고 제거 · 가격 미정</small></button>
+          <button type="button" class="plan" data-plan="free" aria-pressed="false"><span class="p">무료</span><small>공개 30일 · 사진 3장 · 게임만 (랭킹 없음) · 하단에 서비스 로고</small></button>
+          <button type="button" class="plan" data-plan="premium" aria-pressed="true"><span class="p">프리미엄 · 90일</span><small>사진 10장 · 랭킹 이벤트 · 예식장 시상 화면 · 방명록 · 로고 제거 · 가격 미정</small></button>
           <h3>카톡 공유 미리보기</h3>
           <div class="kakao-card"><div class="img"><canvas width="24" height="12" id="cv-share"></canvas></div><div class="txt"><b id="share-title"></b><br><span id="share-sub"></span></div></div>
           <button type="button" class="cta" id="publish">발행하고 카톡으로 보내기</button>
@@ -265,15 +288,29 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
       <div class="phone"><div class="screen guest" id="guest">
         <div class="notch"></div>
         <div class="g-bar">
-          <button type="button" id="g-info">정보 바로 보기</button>
-          <button type="button" class="snd" id="g-restart">처음부터</button>
+          <button type="button" id="g-home">청첩장</button>
+          <button type="button" class="snd" id="g-event">도전 이벤트</button>
         </div>
 
-        <div class="scene title-sc" data-scene="title">
-          <canvas width="48" height="30" id="cv-title"></canvas>
-          <h2 id="t-title"></h2>
-          <p class="sub" id="t-sub"></p>
-          <button type="button" class="press" id="g-start">PRESS START</button>
+        <div class="scene home-sc" data-scene="home">
+          <div class="hero"><canvas width="48" height="30" id="cv-title"></canvas><h2 id="t-title"></h2><p class="sub" id="t-sub"></p></div>
+          <div class="inv" id="inv-card"></div>
+          <p class="sec-t">마음 전하기</p>
+          <div class="pay"><button type="button" data-pay="groom">신랑측 송금</button><button type="button" data-pay="bride">신부측 송금</button></div>
+          <div class="ev" id="ev-box">
+            <p class="ev-t">EVENT · 신랑신부 도전 이벤트</p>
+            <p class="ev-d" id="ev-d"></p>
+            <p class="ev-prize" id="ev-prize"></p>
+            <ol class="rank" id="rank-mini"></ol>
+            <button type="button" class="btn" id="g-start">▶ 도전하기 · 15초</button>
+          </div>
+          <p class="sec-t">GALLERY</p>
+          <div class="gal" id="g-gal"></div>
+          <p class="sec-t">GUESTBOOK</p>
+          <div class="gb"><div id="gb-list"></div>
+            <form id="gb-form"><input id="gb-in" placeholder="축하 메시지 남기기" maxlength="40" aria-label="축하 메시지"><button type="submit">남기기</button></form></div>
+          <div class="credits" id="credits"></div>
+          <button type="button" class="mine" id="g-mine">나도 게임 청첩장 만들기 ▶</button>
         </div>
 
         <div class="scene dlg-sc" data-scene="dialog" hidden>
@@ -283,43 +320,30 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
 
         <div class="scene game-sc" data-scene="game" hidden>
           <div class="hud"><span class="hp" id="hud-hp">♥♥♥</span><span class="wave" id="hud-wave">WAVE 1</span><span id="hud-time">0.0s</span></div>
-          <canvas width="160" height="220" id="cv-game" aria-label="디펜스 미니게임: 몬스터를 탭해서 물리치세요"></canvas>
+          <canvas width="160" height="220" id="cv-game" aria-label="미니게임"></canvas>
           <div class="g-ctrl" id="g-ctrl"></div>
           <div class="game-tip" id="game-tip">몬스터를 탭!</div>
           <div class="modal" id="m-result" hidden><div class="box">
             <h3 id="r-title">CLEAR!</h3><div class="stars" id="r-stars">★★★</div><p id="r-text"></p>
-            <button type="button" class="btn" id="r-next">초대장 받기</button>
-            <button type="button" class="btn ghost" id="r-retry">다시 도전</button>
+            <form class="nick" id="r-nick"><input id="r-name" maxlength="8" placeholder="닉네임" aria-label="랭킹 닉네임"><button type="submit" class="btn">등록</button></form>
+            <button type="button" class="btn" id="r-retry">다시 도전</button>
+            <button type="button" class="btn ghost" id="r-home">청첩장으로 돌아가기</button>
           </div></div>
         </div>
 
-        <div class="scene reward-sc" data-scene="reward" hidden>
-          <p class="sec-t">QUEST REWARD</p>
-          <div class="inv" id="inv-card"></div>
-          <button type="button" class="btn" id="g-ending">엔딩 보기</button>
+        <div class="scene end-sc" data-scene="rank" hidden>
+          <p class="sec-t">LEADERBOARD</p>
+          <p class="rank-me" id="rank-me"></p>
+          <ol class="rank" id="rank-full"></ol>
+          <p class="ev-d" id="rank-due"></p>
+          <p class="ev-prize" id="rank-prize"></p>
+          <button type="button" class="btn" id="rk-retry">기록 갱신 도전</button>
+          <button type="button" class="btn ghost" id="rk-home">청첩장으로 돌아가기</button>
         </div>
 
-        <div class="scene end-sc" data-scene="ending" hidden>
-          <p class="sec-t">GALLERY</p>
-          <div class="gal" id="g-gal"></div>
-          <p class="sec-t">마음 전하기</p>
-          <div class="pay"><button type="button" data-pay="groom">신랑측 송금</button><button type="button" data-pay="bride">신부측 송금</button></div>
-          <p class="sec-t">GUESTBOOK · 클리어 기록</p>
-          <div class="gb"><div id="gb-list"></div>
-            <form id="gb-form"><input id="gb-in" placeholder="축하 메시지 남기기" maxlength="40" aria-label="축하 메시지"><button type="submit">남기기</button></form></div>
-          <div class="credits" id="credits"></div>
-          <button type="button" class="mine" id="g-mine">나도 게임 청첩장 만들기 ▶</button>
-        </div>
-
-        <div class="info-ov" id="info-ov" hidden>
-          <button type="button" class="close" id="info-close">게임으로 돌아가기</button>
-          <div class="inv" id="info-card"></div>
-          <p class="sec-t">GALLERY</p>
-          <div class="gal" id="info-gal"></div>
-        </div>
         <div class="toast" id="g-toast" hidden></div>
       </div></div>
-      <p class="note">게임 15초 · 탭으로 공격 · 게이지가 차면 합동 스킬<br>3번 실패하면 자동으로 클리어됩니다</p>
+      <p class="note">정보는 바로 보이고, 게임은 원하는 하객만 · 점수로 랭킹 · 예식 전날 마감</p>
     </section>
   </main>
 </div>
@@ -335,7 +359,8 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     hall: '라온웨딩홀 3층 그랜드볼룸', addr: '서울 강남구 테헤란로 000',
     lines: ['', '', ''], photos: [],
     look: { groom: { hair: '#3B2A20', outfit: '#3E6FD8' }, bride: { hair: '#7A3E2A', outfit: '#F4F1E8' } },
-    plan: 'premium', fails: 0
+    plan: 'premium',
+    prize: '1등 호텔 뷔페 식사권\n2등 커피 기프티콘 5만원\n3등 커피 기프티콘 1만원'
   };
   const HAIR = ['#3B2A20', '#7A3E2A', '#1B1B2F', '#C9A15A', '#B85C8A'];
   const OUTFIT = ['#3E6FD8', '#F4F1E8', '#2F2F45', '#7BC67E', '#E8737A', '#F2C14E'];
@@ -420,7 +445,7 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     if (i === undefined) S[key] = e.target.value; else S.lines[i] = e.target.value;
     renderAll();
   });
-  bind('#f-groom', 'groom'); bind('#f-bride', 'bride'); bind('#f-date', 'date'); bind('#f-hall', 'hall'); bind('#f-addr', 'addr');
+  bind('#f-groom', 'groom'); bind('#f-bride', 'bride'); bind('#f-date', 'date'); bind('#f-hall', 'hall'); bind('#f-addr', 'addr'); bind('#f-prize', 'prize');
   bind('#f-l1', 'lines', 0); bind('#f-l2', 'lines', 1); bind('#f-l3', 'lines', 2);
   $('#f-photo').addEventListener('change', e => {
     [...e.target.files].slice(0, 6 - S.photos.length).forEach(f => {
@@ -481,25 +506,25 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
       else { x.fillStyle = '#F2C14E'; x.fillRect(3, 3, 5, 5); x.fillStyle = '#E8737A'; x.fillRect(8, 8, 5, 5); } });
     sceneArt($('#cv-share'), 1);
     $('#share-title').textContent = T.title(g, b);
-    $('#share-sub').textContent = `${fmtDate(S.date)} · 탭해서 퀘스트 시작`;
+    $('#share-sub').textContent = `${fmtDate(S.date)} · 청첩장 보기${S.plan === 'free' ? '' : ' · 도전 이벤트 진행 중'}`;
     // guest
     sceneArt($('#cv-title'), 2);
     $('#t-title').textContent = T.title(g, b);
     $('#t-sub').textContent = `${fmtDate(S.date)} · ${S.hall}`;
     sceneArt($('#cv-dlg'), 4);
-    $('#inv-card').innerHTML = invHTML(); $('#info-card').innerHTML = invHTML();
-    $('#g-gal').innerHTML = galHTML(); $('#info-gal').innerHTML = galHTML();
+    $('#inv-card').innerHTML = invHTML();
+    $('#g-gal').innerHTML = galHTML();
     $('#credits').innerHTML = `THANK YOU FOR PLAYING<br>${esc(g)} · ${esc(b)} 올림${S.plan === 'free' ? '<br><small>made with WEDDING QUEST</small>' : ''}`;
-    renderGB();
+    renderGB(); renderRank();
   }
   function rgbToHex(rgb) { const m = rgb.match(/\d+/g); return m ? '#' + m.slice(0, 3).map(n => (+n).toString(16).padStart(2, '0')).join('').toUpperCase() : rgb; }
 
   // ---------- guest flow ----------
   function go(name) { $$('#guest .scene').forEach(s => s.hidden = s.dataset.scene !== name); if (name !== 'game') stopGame(); }
-  function restartGuest() { S.fails = 0; dlgI = 0; $('#info-ov').hidden = true; go('title'); }
-  $('#g-restart').addEventListener('click', restartGuest);
-  $('#g-info').addEventListener('click', () => { $('#info-ov').hidden = false; pauseGame(true); });
-  $('#info-close').addEventListener('click', () => { $('#info-ov').hidden = true; pauseGame(false); });
+  function restartGuest() { dlgI = 0; myId = null; go('home'); $('#guest .home-sc').scrollTop = 0; }
+  const ranked = () => S.plan !== 'free';
+  $('#g-home').addEventListener('click', restartGuest);
+  $('#g-event').addEventListener('click', () => { go('home'); $('#ev-box').scrollIntoView({ block: 'start', behavior: 'smooth' }); });
   $('#g-start').addEventListener('click', () => { dlgI = 0; go('dialog'); showLine(); });
 
   let dlgI = 0;
@@ -518,19 +543,52 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     if (el.textContent.length < L[1].length) { clearInterval(el._t); el.textContent = L[1]; return; }
     dlgI++; if (dlgI < 3) showLine(); else startGame();
   });
-  $('#r-next').addEventListener('click', () => go('reward'));
   $('#r-retry').addEventListener('click', startGame);
-  $('#g-ending').addEventListener('click', () => go('ending'));
+  $('#r-home').addEventListener('click', restartGuest);
+  $('#rk-retry').addEventListener('click', startGame);
+  $('#rk-home').addEventListener('click', restartGuest);
+  $('#r-nick').addEventListener('submit', e => {
+    e.preventDefault(); if (!lastScore) return;
+    const n = $('#r-name').value.trim() || '익명 용사';
+    myId = Date.now(); RANK.push({ id: myId, n, ...lastScore }); lastScore = null;
+    renderRank(); go('rank');
+  });
   $$('.pay button').forEach(b => b.addEventListener('click', () => toast($('#g-toast'), '실제 서비스에서는 카카오페이 송금 화면이 열립니다')));
   $('#g-mine').addEventListener('click', () => { setShow('editor'); toast($('#toast'), '하객이 다음 고객이 되는 진입점입니다'); });
 
-  const GB = [['민지', '결혼 축하해! 보스 한 방에 잡음', '★★★ 9.8s'], ['이모', '어렵지 않네~ 행복하게 살아라', '★★☆ 14.2s']];
-  let lastClear = null;
-  function renderGB() { $('#gb-list').innerHTML = GB.map(([n, m, s]) => `<div class="e"><span><b>${esc(n)}</b> ${esc(m)}</span><span>${esc(s)}</span></div>`).join(''); }
+  const GB = [['민지', '결혼 축하해! 행복하게 살아~'], ['이모', '예쁘게 잘 살아라']];
+  function renderGB() { $('#gb-list').innerHTML = GB.map(([n, m]) => `<div class="e"><span><b>${esc(n)}</b> ${esc(m)}</span></div>`).join(''); }
   $('#gb-form').addEventListener('submit', e => {
     e.preventDefault(); const v = $('#gb-in').value.trim(); if (!v) return;
-    GB.unshift(['나', v, lastClear || '스킵']); $('#gb-in').value = ''; renderGB();
+    GB.unshift(['나', v]); $('#gb-in').value = ''; renderGB();
   });
+
+  // ---------- ranking ----------
+  // score = stars x 1000 + time bonus (faster is better); the server re-checks this in the real service
+  const RANK = [
+    { id: 1, n: '민지', score: 3285, t: 8.6 }, { id: 2, n: '대리님', score: 3190, t: 12.4 },
+    { id: 3, n: '준호', score: 2240, t: 11.0 }, { id: 4, n: '이모', score: 1105, t: 15.8 }, { id: 5, n: '동기 수빈', score: 1060, t: 17.6 }
+  ];
+  let lastScore = null, myId = null;
+  const sorted = () => [...RANK].sort((a, b) => b.score - a.score);
+  const rowHTML = (r, i) => `<li${r.id === myId ? ' class="me"' : ''}><span class="no">${i + 1}${['ST', 'ND', 'RD'][i] || 'TH'}</span><span>${esc(r.n)}</span><span class="sc">${r.score} · ${r.t.toFixed(1)}s</span></li>`;
+  function dueText() {
+    const d = new Date(S.date); if (isNaN(d)) return '';
+    d.setDate(d.getDate() - 1);
+    return `${d.getMonth() + 1}월 ${d.getDate()}일 밤 12시 마감 · 예식 당일 피로연에서 시상합니다`;
+  }
+  function prizeHTML() { return esc(S.prize || '').split('\n').filter(Boolean).join('<br>'); }
+  function renderRank() {
+    const on = ranked(), L = sorted();
+    $('#ev-d').textContent = on ? `${(S.groom || '신랑')}·${(S.bride || '신부')}가 직접 준비한 선물이 걸려 있어요. ${dueText()}` : '15초면 끝나는 미니게임. 두 사람의 모험을 함께 해주세요!';
+    $('#ev-prize').innerHTML = prizeHTML(); $('#ev-prize').hidden = !on || !S.prize.trim();
+    $('#rank-mini').innerHTML = L.slice(0, 3).map(rowHTML).join(''); $('#rank-mini').hidden = !on;
+    $('#rank-full').innerHTML = L.slice(0, 10).map(rowHTML).join('');
+    $('#rank-prize').innerHTML = prizeHTML(); $('#rank-prize').hidden = !S.prize.trim();
+    $('#rank-due').textContent = dueText();
+    const me = L.findIndex(r => r.id === myId);
+    $('#rank-me').innerHTML = me < 0 ? '' : `현재 <b>${me + 1}위</b> / ${L.length}명${me < 3 ? '<br>선물 순위권이에요!' : `<br>3위까지 ${L[2].score - L[me].score + 1}점 남았어요`}`;
+  }
 
   // ---------- mini games: shared engine ----------
   const cv = $('#cv-game'), ctx = cv.getContext('2d');
@@ -874,24 +932,21 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
 
   function finish(win, stars = 0) {
     G.over = true; frame();
-    const m = $('#m-result'); m.hidden = false;
+    $('#m-result').hidden = false;
+    const showNick = win && ranked();
+    $('#r-nick').hidden = !showNick;
     if (win) {
-      lastClear = `${'★'.repeat(stars)}${'☆'.repeat(3 - stars)} ${G.t.toFixed(1)}s`;
+      const score = stars * 1000 + Math.max(0, Math.round((20 - G.t) * 25));
+      lastScore = { score, t: G.t };
       $('#r-title').textContent = 'QUEST CLEAR!'; $('#r-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
-      $('#r-text').textContent = `${TPL[S.tpl].clear} 기록 ${G.t.toFixed(1)}초`;
-      $('#r-next').textContent = '초대장 받기'; $('#r-retry').hidden = false; $('#r-retry').textContent = '별 3개 도전';
+      $('#r-text').textContent = `${TPL[S.tpl].clear} ${score}점 · ${G.t.toFixed(1)}초${showNick ? ' · 닉네임을 남기면 랭킹에 올라가요' : ''}`;
+      $('#r-retry').textContent = '다시 도전';
+      if (showNick) setTimeout(() => $('#r-name').focus(), 50);
     } else {
-      S.fails++;
-      if (S.fails >= 3) {
-        lastClear = '★☆☆ 강제소환';
-        $('#r-title').textContent = '강제 소환!'; $('#r-stars').textContent = '★☆☆';
-        $('#r-text').textContent = '용사님은 결혼식에 강제 소환됩니다. 꼭 와주세요!';
-        $('#r-next').textContent = '초대장 받기'; $('#r-retry').hidden = true;
-      } else {
-        $('#r-title').textContent = 'GAME OVER'; $('#r-stars').textContent = '☆☆☆';
-        $('#r-text').textContent = `${TPL[S.tpl].bossName}에게 당했습니다. (${S.fails}/3) 3번 지면 자동으로 통과합니다.`;
-        $('#r-next').textContent = '그냥 초대장 받기'; $('#r-retry').hidden = false; $('#r-retry').textContent = '다시 도전';
-      }
+      lastScore = null;
+      $('#r-title').textContent = 'GAME OVER'; $('#r-stars').textContent = '☆☆☆';
+      $('#r-text').textContent = `${TPL[S.tpl].bossName}에게 당했습니다. 몇 번이든 다시 도전할 수 있어요.`;
+      $('#r-retry').textContent = '다시 도전';
     }
   }
 
