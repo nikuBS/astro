@@ -172,6 +172,18 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
 .rank-me b { font-family: var(--display); font-size: 28px; color: var(--gold); font-weight: 400; }
 .nick { display: flex; gap: 6px; }
 .nick input { flex: 1; min-width: 0; background: #0F0F1C; border: 2px solid var(--line); padding: 10px; font-size: 14px; color: var(--fg); }
+.tpl em.free { background: var(--green); color: var(--ink); }
+.tpl button.locked { opacity: .55; }
+.tpl button.locked strong::after { content: ' 🔒'; }
+.period { background: #FFFDF7; border: 2px dashed var(--ink); padding: 10px 12px; font-size: 13px; line-height: 1.6; color: var(--ink); }
+.login-ov { position: absolute; inset: 0; background: rgba(27,27,47,.6); display: flex; align-items: flex-end; z-index: 30; }
+.login-ov .sheet { background: #FFFDF7; color: var(--ink); width: 100%; padding: 22px 18px 28px; border-top: 3px solid var(--ink); display: flex; flex-direction: column; gap: 12px; }
+.login-ov h4 { margin: 0; font-size: 18px; }
+.login-ov p { margin: 0; font-size: 13px; line-height: 1.6; color: #4A4760; }
+.g-btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #1F1F1F; border: 1px solid #747775; border-radius: 4px; padding: 12px; font-size: 14px; font-weight: 600; }
+.g-btn b { font-family: Arial, sans-serif; font-size: 16px; color: #4285F4; }
+.login-ov label { display: flex; gap: 8px; font-size: 12px; color: #4A4760; align-items: center; }
+.login-ov .x { background: transparent; border: 0; font-size: 13px; color: #4A4760; padding: 6px; }
 .info-ov { position: absolute; inset: 0; background: #1B1B2F; z-index: 25; overflow-y: auto; padding: 50px 16px 24px; display: flex; flex-direction: column; gap: 12px; }
 .info-ov .close { align-self: flex-end; background: transparent; border: 2px solid var(--line); padding: 6px 10px; font-size: 12px; }
 
@@ -223,9 +235,10 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
           <h3>미니게임 장르를 고르세요</h3>
           <p class="hint">장르마다 스토리·배경·조작이 달라집니다. 하객은 예식 정보를 먼저 보고, 원하는 사람만 10~20초 게임에 도전해 랭킹에 오릅니다.</p>
           <div class="tpl">
-            <button type="button" data-tpl="rpg" aria-pressed="true"><canvas width="16" height="16" data-thumb="rpg"></canvas><div><strong>마왕성 보스전 <em>턴제 RPG</em></strong><span>타이밍 탭으로 크리티컬, 커플 사진이 나오는 합동기</span></div></button>
-            <button type="button" data-tpl="artillery" aria-pressed="false"><canvas width="16" height="16" data-thumb="artillery"></canvas><div><strong>부케 포격 작전 <em>포격</em></strong><span>끌어서 조준하고 바람을 읽어 마왕성 성벽을 무너뜨리기</span></div></button>
-            <button type="button" data-tpl="racing" aria-pressed="false"><canvas width="16" height="16" data-thumb="racing"></canvas><div><strong>웨딩로드 질주 <em>레이싱</em></strong><span>장애물을 피하고 하트로 부스트, 예식장 입구로 골인</span></div></button>
+            <button type="button" data-tpl="shooter" aria-pressed="false"><canvas width="16" height="16" data-thumb="shooter"></canvas><div><strong>용사 방어전 <em class="free">무료</em></strong><span>몰려오는 몬스터를 탭해서 막고, 합동 스킬로 보스 처치</span></div></button>
+            <button type="button" data-tpl="rpg" aria-pressed="true"><canvas width="16" height="16" data-thumb="rpg"></canvas><div><strong>마왕성 보스전 <em>턴제 RPG · 패키지</em></strong><span>타이밍 탭으로 크리티컬, 커플 사진이 나오는 합동기</span></div></button>
+            <button type="button" data-tpl="artillery" aria-pressed="false"><canvas width="16" height="16" data-thumb="artillery"></canvas><div><strong>부케 포격 작전 <em>포격 · 패키지</em></strong><span>끌어서 조준하고 바람을 읽어 마왕성 성벽을 무너뜨리기</span></div></button>
+            <button type="button" data-tpl="racing" aria-pressed="false"><canvas width="16" height="16" data-thumb="racing"></canvas><div><strong>웨딩로드 질주 <em>레이싱 · 패키지</em></strong><span>장애물을 피하고 하트로 부스트, 예식장 입구로 골인</span></div></button>
             <button type="button" class="soon" disabled><canvas width="16" height="16" data-thumb="maze"></canvas><div><strong>물풍선 미로 <em>COMING SOON</em></strong><span>연쇄 폭발로 길을 열어 신부에게</span></div></button>
             <button type="button" class="soon" disabled><canvas width="16" height="16" data-thumb="puzzle"></canvas><div><strong>사진 블록 퍼즐 <em>COMING SOON</em></strong><span>블록을 맞출수록 웨딩 사진이 완성</span></div></button>
           </div>
@@ -244,7 +257,8 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
           <div class="field"><label for="f-l1">대사 1</label><textarea id="f-l1" rows="2"></textarea></div>
           <div class="field"><label for="f-l2">대사 2</label><textarea id="f-l2" rows="2"></textarea></div>
           <div class="field"><label for="f-l3">대사 3</label><textarea id="f-l3" rows="2"></textarea></div>
-          <h3>사진 (최대 6장)</h3>
+          <h3>사진</h3>
+          <p class="hint" id="photo-hint"></p>
           <div class="photos" id="ed-photos"></div>
           <label class="upload">사진 추가<input type="file" id="f-photo" accept="image/*" multiple></label>
         </div>
@@ -269,13 +283,22 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
 2등 커피 기프티콘 5만원
 3등 커피 기프티콘 1만원</textarea></div>
           <h3>이용권</h3>
-          <button type="button" class="plan" data-plan="free" aria-pressed="false"><span class="p">무료</span><small>공개 30일 · 사진 3장 · 게임만 (랭킹 없음) · 하단에 서비스 로고</small></button>
-          <button type="button" class="plan" data-plan="premium" aria-pressed="true"><span class="p">프리미엄 · 90일</span><small>사진 10장 · 랭킹 이벤트 · 예식장 시상 화면 · 방명록 · 로고 제거 · 가격 미정</small></button>
+          <button type="button" class="plan" data-plan="free" aria-pressed="false"><span class="p">무료</span><small>공개 15일(예식 전 14일~후 1일) · 기본 슈팅 게임 · 사진 3장 · 서비스 로고</small></button>
+          <button type="button" class="plan" data-plan="p45" aria-pressed="false"><span class="p">45일 패키지 · 2,900원</span><small>공개 45일(전 40일~후 5일) · 전체 장르 · 랭킹 이벤트 · 방명록 · 사진첩 20장</small></button>
+          <button type="button" class="plan" data-plan="p90" aria-pressed="true"><span class="p">90일 패키지 · 4,900원</span><small>공개 90일(전 60일~후 30일) · 45일 패키지 전부 · 사진첩 30장</small></button>
+          <div class="period" id="period"></div>
           <h3>카톡 공유 미리보기</h3>
           <div class="kakao-card"><div class="img"><canvas width="24" height="12" id="cv-share"></canvas></div><div class="txt"><b id="share-title"></b><br><span id="share-sub"></span></div></div>
           <button type="button" class="cta" id="publish">발행하고 카톡으로 보내기</button>
-          <p class="hint">데모에서는 실제로 발행되지 않습니다.</p>
+          <p class="hint">발행할 때 구글 로그인을 합니다. 공개 기간이 끝나면 청첩장은 파기됩니다(D-7·D-1 메일 안내). 데모에서는 실제로 발행되지 않습니다.</p>
         </div>
+        <div class="login-ov" id="login-ov" hidden><div class="sheet">
+          <h4>발행하려면 로그인하세요</h4>
+          <p>영수증과 공개·파기 안내를 이메일로 보내드립니다. 카톡 안에서 열었다면 외부 브라우저로 이동한 뒤 이어서 진행합니다.</p>
+          <button type="button" class="g-btn" id="g-login"><b>G</b> Google로 계속하기</button>
+          <label><input type="checkbox" id="mkt"> (선택) 새 게임·할인 소식 받기</label>
+          <button type="button" class="x" id="login-x">취소</button>
+        </div></div>
         <div class="toast" id="toast" hidden></div>
       </div></div>
     </section>
@@ -306,9 +329,9 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
           </div>
           <p class="sec-t">GALLERY</p>
           <div class="gal" id="g-gal"></div>
-          <p class="sec-t">GUESTBOOK</p>
+          <div id="gb-box"><p class="sec-t">GUESTBOOK</p>
           <div class="gb"><div id="gb-list"></div>
-            <form id="gb-form"><input id="gb-in" placeholder="축하 메시지 남기기" maxlength="40" aria-label="축하 메시지"><button type="submit">남기기</button></form></div>
+            <form id="gb-form"><input id="gb-in" placeholder="축하 메시지 남기기" maxlength="40" aria-label="축하 메시지"><button type="submit">남기기</button></form></div></div>
           <div class="credits" id="credits"></div>
           <button type="button" class="mine" id="g-mine">나도 게임 청첩장 만들기 ▶</button>
         </div>
@@ -359,13 +382,23 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     hall: '라온웨딩홀 3층 그랜드볼룸', addr: '서울 강남구 테헤란로 000',
     lines: ['', '', ''], photos: [],
     look: { groom: { hair: '#3B2A20', outfit: '#3E6FD8' }, bride: { hair: '#7A3E2A', outfit: '#F4F1E8' } },
-    plan: 'premium',
+    plan: 'p90',
     prize: '1등 호텔 뷔페 식사권\n2등 커피 기프티콘 5만원\n3등 커피 기프티콘 1만원'
   };
   const HAIR = ['#3B2A20', '#7A3E2A', '#1B1B2F', '#C9A15A', '#B85C8A'];
   const OUTFIT = ['#3E6FD8', '#F4F1E8', '#2F2F45', '#7BC67E', '#E8737A', '#F2C14E'];
 
   const TPL = {
+    shooter: {
+      name: '용사 방어전', genre: '슈팅', bg: '#16213A', ground: '#24304F', enemy: '#7BC67E', bossName: '슬라임 대왕', tip: '몬스터를 탭!',
+      title: (g, b) => `${g}♥${b}의 예식장을 지켜라!`,
+      lines: (g, b) => [
+        ['슬라임 대왕', '결혼식? 그런 건 우리 몬스터가 막겠다!'],
+        [g, `${b}, 하객분들과 함께 예식장을 지키자!`],
+        [b, '하객 여러분, 몬스터를 탭해서 막아주세요!']
+      ],
+      clear: '예식장 방어 성공! 두 사람이 결혼합니다.'
+    },
     rpg: {
       name: '마왕성 보스전', genre: '턴제 RPG', bg: '#2B1B3A', ground: '#4A2E55', enemy: '#9B59D0', bossName: '마왕', tip: '공격 → 타이밍 맞춰 탭!',
       title: (g, b) => `${g}, ${b}을(를) 구하라!`,
@@ -436,10 +469,15 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     $$('.steps button').forEach(x => x.setAttribute('aria-selected', x === b));
     $$('.ed-body').forEach(p => p.hidden = p.dataset.panel !== b.dataset.step);
   }));
-  $$('.tpl button[data-tpl]').forEach(b => b.addEventListener('click', () => {
-    S.tpl = b.dataset.tpl;
-    $$('.tpl button[data-tpl]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  const PLAN = { free: { photos: 3, open: [14, 1] }, p45: { photos: 20, open: [40, 5] }, p90: { photos: 30, open: [60, 30] } };
+  function setTpl(id) {
+    S.tpl = id;
+    $$('.tpl button[data-tpl]').forEach(x => x.setAttribute('aria-pressed', x.dataset.tpl === id));
     restartGuest(); renderAll();
+  }
+  $$('.tpl button[data-tpl]').forEach(b => b.addEventListener('click', () => {
+    if (S.plan === 'free' && b.dataset.tpl !== 'shooter') { toast($('#toast'), '이 장르는 패키지(2,900원부터)에서 쓸 수 있어요'); return; }
+    setTpl(b.dataset.tpl);
   }));
   const bind = (id, key, i) => $(id).addEventListener('input', e => {
     if (i === undefined) S[key] = e.target.value; else S.lines[i] = e.target.value;
@@ -448,7 +486,8 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
   bind('#f-groom', 'groom'); bind('#f-bride', 'bride'); bind('#f-date', 'date'); bind('#f-hall', 'hall'); bind('#f-addr', 'addr'); bind('#f-prize', 'prize');
   bind('#f-l1', 'lines', 0); bind('#f-l2', 'lines', 1); bind('#f-l3', 'lines', 2);
   $('#f-photo').addEventListener('change', e => {
-    [...e.target.files].slice(0, 6 - S.photos.length).forEach(f => {
+    if (S.photos.length >= PLAN[S.plan].photos) toast($('#toast'), S.plan === 'free' ? '무료는 사진 3장까지예요. 패키지는 사진첩 20~30장' : '사진을 더 올릴 수 없어요');
+    [...e.target.files].slice(0, PLAN[S.plan].photos - S.photos.length).forEach(f => {
       const fr = new FileReader(); fr.onload = () => { S.photos.push(fr.result); renderAll(); }; fr.readAsDataURL(f);
     });
     e.target.value = '';
@@ -461,9 +500,19 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
       box.appendChild(b);
     });
   });
-  $$('.plan').forEach(b => b.addEventListener('click', () => { S.plan = b.dataset.plan; $$('.plan').forEach(x => x.setAttribute('aria-pressed', x === b)); renderAll(); }));
+  $$('.plan').forEach(b => b.addEventListener('click', () => {
+    S.plan = b.dataset.plan; $$('.plan').forEach(x => x.setAttribute('aria-pressed', x === b));
+    S.photos = S.photos.slice(0, PLAN[S.plan].photos);
+    if (S.plan === 'free' && S.tpl !== 'shooter') { setTpl('shooter'); toast($('#toast'), '무료는 기본 슈팅 게임만 쓸 수 있어요'); }
+    restartGuest(); renderAll();
+  }));
   function toast(el, msg) { el.textContent = msg; el.hidden = false; clearTimeout(el._t); el._t = setTimeout(() => el.hidden = true, 2600); }
-  $('#publish').addEventListener('click', () => toast($('#toast'), '발행 완료! (데모) 하객 화면에서 확인해 보세요'));
+  $('#publish').addEventListener('click', () => { $('#login-ov').hidden = false; });
+  $('#login-x').addEventListener('click', () => { $('#login-ov').hidden = true; });
+  $('#g-login').addEventListener('click', () => {
+    $('#login-ov').hidden = true;
+    toast($('#toast'), S.plan === 'free' ? '발행 완료! (데모) 하객 화면에서 확인해 보세요' : `결제 후 발행 완료! (데모) ${S.plan === 'p45' ? '2,900' : '4,900'}원`);
+  });
 
   // mobile switch
   const setShow = v => { $('#stage').dataset.show = v; $('#sw-editor').setAttribute('aria-pressed', v === 'editor'); $('#sw-guest').setAttribute('aria-pressed', v === 'guest'); };
@@ -484,6 +533,12 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
       <div class="hall">${esc(S.hall)}</div><div class="addr">${esc(S.addr)}</div>
       <div class="maps"><a href="https://map.kakao.com/link/search/${q}" target="_blank" rel="noopener">카카오맵</a><a href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener">네이버지도</a><a href="https://www.google.com/maps/search/${q}" target="_blank" rel="noopener">구글지도</a></div>`;
   }
+  function periodText() {
+    const d = new Date(S.date); if (isNaN(d)) return '예식 일시를 입력하면 공개 기간이 계산됩니다';
+    const [b, a] = PLAN[S.plan].open, f = x => `${x.getFullYear()}. ${x.getMonth() + 1}. ${x.getDate()}`;
+    const o = new Date(d), e = new Date(d); o.setDate(o.getDate() - b); e.setDate(e.getDate() + a);
+    return `공개 기간 <b>${f(o)} ~ ${f(e)}</b> (${b + a}일)<br>공개 전에는 카운트다운 화면, 기간이 끝나면 파기됩니다`;
+  }
   function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   function galHTML() {
     const n = Math.max(6, S.photos.length);
@@ -498,8 +553,13 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     [['#cv-groom', 'groom'], ['#cv-bride', 'bride']].forEach(([id, w]) => { const c = $(id), x = c.getContext('2d'); x.clearRect(0, 0, 8, 10); draw(x, SPR[w], 0, 0, pal(w)); });
     $$('.swatches').forEach(box => $$('button', box).forEach(btn => btn.setAttribute('aria-pressed', btn.style.background && S.look[box.dataset.who][box.dataset.part] === rgbToHex(btn.style.background))));
     $('#ed-photos').innerHTML = galHTML();
+    $('#photo-hint').textContent = `${S.photos.length} / ${PLAN[S.plan].photos}장 · ${S.plan === 'free' ? '무료 3장, 패키지는 사진첩 20~30장' : '데모 미리보기는 앞의 6장만 표시'}`;
+    $('#period').innerHTML = periodText();
+    $$('.tpl button[data-tpl]').forEach(x => x.classList.toggle('locked', S.plan === 'free' && x.dataset.tpl !== 'shooter'));
+    $('#gb-box').hidden = S.plan === 'free';
     $$('[data-thumb]').forEach(c => { const x = c.getContext('2d'), k = c.dataset.thumb, t = TPL[k] || { bg: '#2A2A45', enemy: '#5AB0E6' }; x.fillStyle = t.bg; x.fillRect(0, 0, 16, 16);
-      if (k === 'rpg') { draw(x, SPR.boss, 4, 1, pal('groom', t.enemy)); draw(x, SPR.groom, 1, 6, pal('groom'), .9); }
+      if (k === 'shooter') { draw(x, SPR.slime, 4, 2, pal('groom', t.enemy)); draw(x, SPR.bat, 4, 9, pal('groom', '#E8737A')); }
+      else if (k === 'rpg') { draw(x, SPR.boss, 4, 1, pal('groom', t.enemy)); draw(x, SPR.groom, 1, 6, pal('groom'), .9); }
       else if (k === 'artillery') { x.fillStyle = '#8F8BA8'; x.fillRect(9, 6, 6, 10); draw(x, SPR.heart, 3, 3, pal('groom')); }
       else if (k === 'racing') { x.fillStyle = '#55536E'; x.fillRect(3, 6, 10, 10); draw(x, SPR.car, 4, 10, { w: '#F4F1E8', k: '#1B1B2F', r: '#E8737A' }); }
       else if (k === 'maze') { draw(x, SPR.slime, 4, 5, pal('groom', '#5AB0E6')); }
@@ -928,7 +988,82 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 
     }
   };
 
-  const GAMES = { rpg: RPG, artillery: ART, racing: RACE };
+  // free genre: lane defense shooter (demo v1 rules on the shared engine)
+  const LANES = [30, 80, 130], LINE = 186;
+  const SHOOT = {
+    ctrl: '<button type="button" class="cmd sp" data-cmd="skill">♥ 합동 스킬 0%</button>',
+    init(G) { G.mons = []; G.shots = []; G.boss = null; G.spawnT = 0; G.gauge = 0; SHOOT.sync(G); },
+    sync(G) {
+      const b = $('#g-ctrl .sp'); b.disabled = G.gauge < 100; b.classList.toggle('ready', G.gauge >= 100);
+      b.textContent = G.gauge >= 100 ? '♥ 합동 스킬!' : `♥ 합동 스킬 ${G.gauge}%`;
+    },
+    spawn(G, type) {
+      const lane = LANES[Math.floor(Math.random() * 3)];
+      G.mons.push({ type, x: lane - 4, y: -8, hp: type === 'bat' ? 2 : 1, v: type === 'bat' ? 30 : 20, wob: Math.random() * 6 });
+    },
+    update(G, dt) {
+      const wave = G.t < 5 ? 1 : G.t < 11 ? 2 : 3;
+      G.label = wave === 3 ? 'BOSS' : `WAVE ${wave}`;
+      G.spawnT -= dt;
+      if (wave < 3 && G.spawnT <= 0) { SHOOT.spawn(G, wave === 1 || Math.random() < .5 ? 'slime' : 'bat'); G.spawnT = wave === 1 ? 1.1 : .75; }
+      if (wave === 3 && !G.boss) G.boss = { x: W / 2 - 12, y: -26, hp: 12, max: 12, minT: 1.4, hit: 0 };
+      if (G.boss) {
+        if (G.boss.y < 24) G.boss.y += 20 * dt;
+        if ((G.boss.minT -= dt) <= 0) { SHOOT.spawn(G, 'slime'); G.boss.minT = 1.5; }
+        G.boss.hit = Math.max(0, G.boss.hit - dt);
+      }
+      for (const m of G.mons) { m.y += m.v * dt; m.wob += dt * 6; }
+      for (const m of G.mons.filter(m => m.y > LINE - 8)) { G.hp--; fx.shake(5); fx.flash('#E8737A'); fx.burst(m.x + 4, LINE, '#E8737A', 8); sfx('bad'); }
+      G.mons = G.mons.filter(m => m.y <= LINE - 8 && m.hp > 0);
+      G.shots = G.shots.filter(s => (s.t -= dt) > 0);
+      if (G.hp <= 0) return finish(false);
+      if (G.boss && G.boss.hp <= 0) { fx.burst(W / 2, 40, '#F2C14E', 30); sfx('win'); return finish(true, Math.max(1, G.hp)); }
+    },
+    render(G) {
+      const T = TPL.shooter;
+      ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = T.ground; for (const x of LANES) ctx.fillRect(x - 10, 0, 20, LINE);
+      ctx.fillStyle = '#F4F1E8'; for (let i = 0; i < 10; i++) ctx.fillRect((i * 47) % W, (i * 29 + G.t * 8) % LINE, 1, 1);
+      ctx.fillStyle = '#E8737A'; ctx.fillRect(0, LINE, W, 2);
+      ctx.fillStyle = T.ground; ctx.fillRect(0, LINE + 2, W, H - LINE);
+      draw(ctx, SPR.castle, W / 2 - 8, LINE + 6, pal('groom'), 2);
+      draw(ctx, SPR.groom, 20, LINE + 8, pal('groom'), 1.6);
+      draw(ctx, SPR.bride, W - 33, LINE + 8, pal('bride'), 1.6);
+      if (G.boss) {
+        draw(ctx, SPR.boss, G.boss.x, G.boss.y, pal('groom', G.boss.hit > 0 ? '#F4F1E8' : T.enemy), 3);
+        ctx.fillStyle = '#3A3A5C'; ctx.fillRect(30, 6, 100, 4);
+        ctx.fillStyle = '#E8737A'; ctx.fillRect(30, 6, 100 * Math.max(0, G.boss.hp) / G.boss.max, 4);
+      }
+      for (const m of G.mons) draw(ctx, SPR[m.type], m.x + Math.sin(m.wob) * (m.type === 'bat' ? 3 : 0), m.y, pal('groom', m.type === 'bat' ? '#E8737A' : T.enemy), 1.2);
+      ctx.fillStyle = '#F2C14E';
+      for (const s of G.shots) { ctx.globalAlpha = s.t / .15; for (let i = 0; i <= 12; i++) ctx.fillRect(s.fx + (s.x - s.fx) * i / 12, s.fy + (s.y - s.fy) * i / 12, 1, 1); }
+      ctx.globalAlpha = 1;
+    },
+    down(G, x, y) {
+      const from = x < W / 2 ? [26, LINE + 10] : [W - 27, LINE + 10];
+      let best = null, bd = 16;
+      for (const m of G.mons) { const d = Math.hypot(m.x + 5 - x, m.y + 4 - y); if (d < bd) { bd = d; best = m; } }
+      if (best) {
+        best.hp--; G.shots.push({ x: best.x + 5, y: best.y + 4, fx: from[0], fy: from[1], t: .15 }); sfx('hit');
+        if (best.hp <= 0) { fx.burst(best.x + 5, best.y + 4, '#F2C14E', 10); fx.num(best.x + 5, best.y, '+18%', '#F2C14E'); G.gauge = Math.min(100, G.gauge + 18); }
+        return SHOOT.sync(G);
+      }
+      const B = G.boss;
+      if (B && x > B.x - 4 && x < B.x + 28 && y > B.y - 4 && y < B.y + 28) {
+        B.hp--; B.hit = .08; fx.stop(.04); fx.shake(2); fx.num(x, y - 4, '1', '#F4F1E8'); sfx('hit');
+        G.shots.push({ x, y, fx: from[0], fy: from[1], t: .15 }); G.gauge = Math.min(100, G.gauge + 6); SHOOT.sync(G);
+      }
+    },
+    cmd(G, c) {
+      if (c !== 'skill' || G.gauge < 100) return;
+      G.mons.forEach(m => fx.burst(m.x + 5, m.y + 4, '#5AB0E6', 10)); G.mons = [];
+      if (G.boss) { G.boss.hp -= 5; G.boss.hit = .3; fx.num(W / 2, 50, '5', '#5AB0E6'); }
+      fx.flash('#5AB0E6'); fx.shake(6); fx.stop(.12); sfx('boom');
+      G.gauge = 0; SHOOT.sync(G);
+    }
+  };
+
+  const GAMES = { shooter: SHOOT, rpg: RPG, artillery: ART, racing: RACE };
 
   function finish(win, stars = 0) {
     G.over = true; frame();

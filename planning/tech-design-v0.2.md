@@ -1,7 +1,8 @@
-# 기술 설계 문서 v0.1 — 레트로 게임 모바일 청첩장
+# 기술 설계 문서 v0.2 — 레트로 게임 모바일 청첩장
 
-- 상태: 초안 (W1-2 리뷰용, 11/12 1차 리뷰 → 11/14 확정)
-- 대상: 프론트 2 · 백엔드 3 · 퍼블 1 · 기획 2
+- 상태: 초안 v0.2 (11/5 요금제·로그인·하객 흐름 결정 반영)
+- 체제: 1인 운영 + AI 보조 (기존 11명 역할 분담은 작업 영역 구분으로만 사용)
+- v0.2 변경: 정보 우선 하객 화면, 랭킹 이벤트, 3단 요금제(무료·45일·90일), 기간 종료 후 파기, 구글 로그인
 - 기준 자료: 기획서 덱, 투자자 데모(`wedding-quest-demo.html`), 기존 저장소 분석 보고서
 - 범위: 베타(12/28 클로즈드) 기준. 레이싱 이후 장르는 확장 지점만 정의
 
@@ -17,7 +18,9 @@
 | 배포 | **Vercel** (대안: Cloudflare Pages) | Astro SSR 어댑터 성숙, 프리뷰 배포로 QA 편함 |
 | 게임 렌더링 | Canvas 2D, 논리 해상도 **160×220** 고정 + 정수배 확대 | 데모에서 검증, 저사양에서도 가벼움, 픽셀 느낌 유지 |
 | 게임 엔진 | 외부 엔진 없이 **자체 공통 런타임** (데모 코드 기반) | 15초 게임에 Phaser 등은 과함(번들 수백 KB) |
-| 로그인 | 카카오 로그인 (Supabase OAuth) | 타깃 사용자, 카톡 공유와 같은 앱 키 |
+| 로그인 | **구글 로그인** (Supabase OAuth). 카카오 로그인은 정식 오픈 때 추가 | 인증된 이메일 확보(영수증·파기 안내). 카카오 이메일 필수 동의는 비즈 앱 심사 필요 |
+| 요금제 | 무료(15일) · 45일 패키지 2,900원 · 90일 패키지 4,900원 | 5,000원 이하 원칙, 상품 2개로 단순화 |
+| 데이터 보관 | 공개 기간 종료 → 파기 (평생 보관 없음) | 저장 비용·개인정보 부담 최소화 |
 | 결제 | 국내 PG(포트원 경유 검토) → 웹훅으로 플랜 반영 | 카드·간편결제 한 번에, 심사 병행 |
 
 ---
@@ -75,7 +78,7 @@ supabase/
 
 ```ts
 // src/lib/schema/invitation.ts  — zod 스키마에서 타입을 뽑아 프론트·서버가 같이 쓴다
-type GenreId = 'rpg' | 'artillery' | 'racing';
+type GenreId = 'shooter' | 'rpg' | 'artillery' | 'racing';   // shooter = 무료 기본 게임
 
 interface InvitationConfig {
   schemaVersion: 1;
@@ -99,6 +102,7 @@ interface InvitationConfig {
   photos: PhotoRef[];                            // 순서 = 갤러리 순서, [0] = 합동기 컷인
   payment?: { groomLink?: string; brideLink?: string };  // 카카오페이 송금 링크만. 계좌번호는 베타 범위 밖
   options: { guestbook: boolean; music: boolean };
+  event?: { prizes: string[] };                  // 순위별 선물 문구 (패키지 전용)
 }
 interface Look { hair: string; outfit: string }  // 팔레트 인덱스 문자열, 자유 색상은 받지 않음
 interface PhotoRef { id: string; w: number; h: number }
@@ -111,18 +115,20 @@ interface PhotoRef { id: string; w: number; h: number }
 
 | 테이블 | 주요 컬럼 | 비고 |
 |---|---|---|
-| `profiles` | id(=auth.uid), kakao_id, created_at | |
-| `invitations` | id, owner_id, slug(unique), draft jsonb, status(draft/published/expired/deleted), plan(free/p90/p180), expires_at, published_at | draft = InvitationConfig |
+| `profiles` | id(=auth.uid), email, name, avatar_url, marketing_opt_in, marketing_opt_in_at, created_at | 구글 OAuth에서 채움. 탈퇴 시 삭제 |
+| `invitations` | id, owner_id, slug(unique), draft jsonb, status(draft/scheduled/published/expired/deleted), plan(free/p45/p90), opens_at, expires_at, published_at | draft = InvitationConfig |
 | `published_snapshots` | invitation_id, version, data jsonb, created_at | 하객이 읽는 공개 데이터. 발행할 때마다 새 버전 |
 | `photos` | id, invitation_id, path_original, path_web, w, h, order | 원본은 비공개 버킷 |
-| `guestbook` | id, invitation_id, nickname, message, clear_record, created_at, hidden | 신고·숨김 |
-| `orders` | id, invitation_id, plan, amount, pg_tx_id, status, paid_at | PG 웹훅으로만 갱신 |
+| `guestbook` | id, invitation_id, nickname, message, created_at, hidden | 패키지 전용. 신고·숨김 |
+| `scores` | id, invitation_id, nickname, score, time_ms, stars, run_token, created_at | 패키지 전용 랭킹. 서버 검증 후 저장 |
+| `notifications` | id, owner_id, invitation_id, kind, sent_at | 메일 발송 이력 (중복 방지) |
+| `orders` | id, owner_id, invitation_id, plan, amount, pg_tx_id, status, paid_at | PG 웹훅으로만 갱신. **청첩장 파기 후에도 5년 보관**(전자상거래법), 이메일·금액·일시만 남김 |
 | `reports` | id, invitation_id, reason, created_at | 신고 |
 
 ### 3.3 권한 (RLS 초안)
 
 - `invitations`, `photos`, `orders`: **소유자만** 읽기·쓰기 (`owner_id = auth.uid()`).
-- `published_snapshots`: 익명 읽기 허용, 단 `invitations.status = 'published' and expires_at > now()`인 것만.
+- `published_snapshots`: 익명 읽기 허용, 단 `invitations.status = 'published' and now() between opens_at and expires_at`인 것만. 공개 전에는 카운트다운용 최소 필드(이름·날짜)만 별도 뷰로.
 - `guestbook`: 익명 **삽입**은 API 라우트(레이트 리밋)를 통해서만, 읽기는 공개 스냅샷과 같은 조건. 소유자는 숨김 가능.
 - `orders`: 클라이언트 쓰기 금지. Edge Function(service role)만 쓴다.
 
@@ -137,24 +143,63 @@ interface PhotoRef { id: string; w: number; h: number }
 
 ### 4.2 사진 업로드
 1. 클라이언트에서 긴 변 **2048px로 리사이즈 + EXIF(위치 정보) 제거** 후 업로드.
-2. `/api/upload-url`이 Storage 서명 업로드 URL 발급 (플랜별 장수 제한을 여기서 검사).
+2. `/api/upload-url`이 Storage 서명 업로드 URL 발급. 요금제별 장수 제한(무료 3 · 45일 20 · 90일 30)을 여기서 검사.
 3. 웹용(1080px, WebP)과 컷인용(320px)을 Edge Function에서 생성.
 
 ### 4.3 발행
-1. `/api/publish`: draft를 zod + 장르 매니페스트로 검증 → `published_snapshots`에 새 버전 저장 → `status='published'`, 무료면 `expires_at = 예식일 + 30일`.
+1. `/api/publish`: draft를 zod + 장르 매니페스트로 검증 → `published_snapshots`에 새 버전 저장 → 요금제별 `opens_at`/`expires_at` 계산(4.7) → 공개일 전이면 `status='scheduled'`.
 2. slug는 추측하기 어려운 8자 이상 랜덤(`/i/k7Qm2xPa`). 이름이 들어간 URL은 쓰지 않는다.
 3. OG 이미지 캐시 무효화.
 
 ### 4.4 하객 열람
 1. `/i/{slug}` SSR: 최신 스냅샷 조회 → `<meta og:*>` + 초기 데이터 인라인 → 정적 HTML 응답 (CDN 캐시 60초).
-2. 클라이언트: 타이틀 씬 즉시 표시 → 장르 모듈 지연 로드 → 대화 → 게임 → 보상 → 엔딩.
-3. **정보 보기**는 게임 로드와 무관하게 첫 화면부터 동작 (SSR HTML에 정보 카드가 이미 있음).
+2. **첫 화면 = 청첩장**: 표지 · 일시·장소·지도 · 송금 · (패키지) 도전 이벤트 박스 · 사진첩 · 방명록. 전부 SSR HTML이라 게임 로드와 무관하게 즉시 표시.
+3. [도전하기]를 누를 때만 장르 모듈 지연 로드 → 대화 → 게임 → 결과(점수·닉네임 등록) → 랭킹. 실패해도 재도전 또는 청첩장 복귀. "강제 소환" 규칙은 폐지.
+4. 공개일 전 접속: 카운트다운 화면(이름·날짜·D-day만). 기간 종료 후: "종료된 청첩장" 화면.
 
 ### 4.5 결제와 만료
 - 결제창 → PG 웹훅 → Edge Function이 금액·주문 검증 → `orders.paid` + `invitations.plan/expires_at` 갱신. **클라이언트 콜백만으로는 절대 반영하지 않는다.**
-- 매일 Cron: `expires_at` 지난 청첩장 `expired`로 전환(하객에게 "종료된 청첩장" 화면) → 30일 후 사진·스냅샷 파기, 이름 등 개인정보 마스킹.
+- 업그레이드(무료→45일→90일)는 **차액만 결제**. 하향 변경은 허용하지 않는다.
+- 매일 Cron: `opens_at` 도달 시 `published`로 전환, `expires_at` 지나면 `expired` → **즉시 파기**(사진 원본·웹본, 스냅샷, 방명록, 점수, draft). `orders`만 남긴다.
+- 파기 전 메일: D-7, D-1 (방명록·랭킹 내려받기 링크 포함), 파기 완료 안내.
 
-### 4.6 카톡 공유
+### 4.6 로그인 (작성자만)
+- 에디터 작업과 미리보기는 로그인 없이 가능. draft는 브라우저에 임시 저장 → **발행 시점에 구글 로그인** → 서버에 이관.
+- **카톡 등 인앱 브라우저 처리**: 구글은 인앱 브라우저(WebView)에서 OAuth를 막는다(403 disallowed_useragent). UA로 인앱을 감지하면 로그인 전에 **외부 브라우저로 이동**시킨다.
+  - 안드로이드 카톡: `kakaotalk://web/openExternal?url=<현재 URL>` 로 자동 전환
+  - iOS 카톡: 같은 스킴을 시도하고, 실패하면 "Safari로 열기" 안내 화면
+  - 기타 인앱(인스타·네이버 등): 안내 화면 + 링크 복사
+  - 임시 draft는 URL 파라미터 대신 서버 임시 저장소에 짧은 토큰으로 넘겨 외부 브라우저에서 이어서 편집
+- 받는 정보: 이메일·이름·프로필 사진(기본 scope `openid email profile`, 구글 앱 심사 불필요). 동의 화면에 서비스명·도메인·개인정보처리방침 URL 필요.
+- 마케팅 메일 수신 동의는 가입 시 **선택 체크박스로 분리**(정보통신망법). 영수증·공개/파기 안내는 서비스 메일로 동의 없이 발송.
+
+### 4.7 요금제와 공개 기간
+
+| 기능 | 무료 | 45일 패키지 2,900원 | 90일 패키지 4,900원 |
+|---|---|---|---|
+| 예식 정보·지도·송금 | O | O | O |
+| 사진 | 3장 | 사진첩 20장 | 사진첩 30장 |
+| 게임 | 기본 슈팅 1종 | 전체 장르 | 전체 장르 |
+| 랭킹 이벤트 | X | O | O |
+| 방명록 | X | O | O |
+| 서비스 로고 | 표시 | 없음 | 없음 |
+| 공개 기간 | 예식 전 14일 ~ 후 1일 | 예식 전 40일 ~ 후 5일 | 예식 전 60일 ~ 후 30일 |
+
+```ts
+const WINDOW = { free: [14, 1], p45: [40, 5], p90: [60, 30] } as const; // [전, 후] 일수
+opens_at   = startOfDay(예식일 - 전)   // Asia/Seoul
+expires_at = endOfDay(예식일 + 후)
+```
+- 기능 제한은 **서버에서 강제**한다 (업로드 URL 발급, 장르 매니페스트 검증, 방명록·점수 API). 프론트 잠금 표시는 안내용.
+- 이미 발행된 청첩장은 결제 당시 `genre.version`을 유지. 이후 고급 장르는 별도 가격을 붙일 수 있다.
+
+### 4.8 랭킹 이벤트 (패키지 전용)
+- 점수 = 별 × 1000 + max(0, (20 - 초) × 25). 시작 시 서버가 `run_token`(일회용, 서명) 발급 → 종료 시 점수·시간·입력 요약 제출.
+- 서버 검증: 토큰 1회 사용, 최소 플레이 시간, 점수 상한, IP·기기당 분당 제출 제한. 같은 닉네임은 최고 점수만 표시.
+- 마감: 예식 전날 23:59. 이후 제출은 기록만 하고 순위 반영 안 함. 예식 당일 `/i/{slug}/awards` 시상 화면(전체 화면, 큰 글씨).
+- 선물은 부부가 직접 전달한다. 서비스는 경품을 운영·정산하지 않는다 (문구: "두 사람이 준비한 감사 선물").
+
+### 4.9 카톡 공유
 - 카카오 JS SDK `Kakao.Share.sendDefault` (피드 템플릿): 제목 = 장르 타이틀 문구, 이미지 = `/og/{slug}.png`.
 - OG 이미지: Satori(+resvg)로 1200×630 생성. 픽셀 캐릭터 + 이름 + 날짜. 스냅샷 버전을 쿼리에 넣어 캐시 분리.
 
@@ -169,7 +214,7 @@ interface PhotoRef { id: string; w: number; h: number }
 - **입력**: Pointer Events를 논리 좌표(160×220)로 변환해 `down/move/up` 전달, 하단 컨트롤 영역 버튼은 `cmd(name)`.
 - **연출 킷(fx)**: `shake(px)`, `hitStop(sec)`, `flash(color)`, `popText(x,y,text,color)`, `burst(x,y,color,n)`, `cutIn(photo|sprites, text)`.
 - **오디오**: Web Audio로 효과음 합성 (`sfx('hit'|'crit'|'boom'|...)`). 첫 사용자 탭에서 AudioContext 재개, 음소거 토글.
-- **결과**: `finish({ win, stars })` → 3회 실패 시 "강제 소환" 처리, 방명록용 기록 문자열 생성.
+- **결과**: `finish({ win, stars })` → 점수 계산, (패키지) 랭킹 제출. 실패는 재도전/복귀만.
 - **렌더 래퍼**: 흔들림 변환 → 장르 render → 파티클 → 텍스트 → 플래시 순서. HUD(DOM) 갱신.
 
 ### 5.2 장르 모듈 인터페이스
@@ -221,6 +266,7 @@ interface GenreManifest {
 | 포격 | 포탄 / 클리어 조건 / 폭발 반경 | 5발 / 성벽 50% 이하 / 19px |
 | 포격 | 중력 / 바람 범위 / 최대 속도 | 120 / -3~+3 / 150 |
 | 레이싱 | 목표 거리 / 기본·부스트·충돌 속도 | 2400 / 170·240·70 |
+| 슈팅(무료) | 웨이브 / 제한 시간 | 데모 v1 값에서 재조정 |
 
 목표: 첫 시도 클리어율 [70%], 평균 플레이 15초 ± 5초. 시드 고정 봇으로 1,000판 돌려 분포 확인.
 
@@ -241,34 +287,35 @@ interface GenreManifest {
 - 하객 페이지에는 **공개 스냅샷만** 노출. 소유자 ID, 원본 사진 경로, 결제 정보는 스냅샷에 넣지 않는다.
 - 사진 EXIF 제거, 원본 버킷 비공개, 웹용 사진은 만료되는 서명 URL.
 - 계좌번호는 베타에서 저장하지 않는다 (카카오페이 송금 링크만). 기존 저장소에 공개된 계좌번호·실명은 선행 정리에서 제거.
-- 방명록: 레이트 리밋(IP+slug 기준 분당 3건), 금칙어 필터, 소유자 숨김, 신고.
+- 방명록·랭킹 닉네임: 레이트 리밋(IP+slug 기준 분당 3건), 금칙어 필터, 소유자 숨김, 신고. 하객은 로그인 없음.
 - `noindex` 메타 + `robots.txt`로 청첩장 페이지 검색 노출 차단.
-- 만료 후 30일 파기 정책은 약관·개인정보처리방침과 문구를 맞춘다 (사업 1과 협업).
+- 파기 정책: 콘텐츠는 공개 기간 종료 즉시 파기, 거래 기록은 5년 보관, 계정(이메일)은 탈퇴 시까지. 약관·개인정보처리방침에 같은 문구로 명시.
 
 ---
 
 ## 7. 테스트·품질
 
 - **단위**: zod 스키마, 장르 모듈(시드 고정 시뮬레이션: "봇이 70% 이상 클리어"를 CI 검사로).
-- **E2E**: Playwright 모바일 뷰포트로 에디터 → 발행 → 하객 열람 → 정보 보기 → 방명록.
+- **E2E**: Playwright 모바일 뷰포트로 에디터 → 구글 로그인 → 발행 → 하객 열람 → 도전 → 랭킹 → 방명록. 인앱 브라우저 UA로 외부 브라우저 전환 분기 검사.
 - **실기기**: 카톡 인앱(안드로이드 2종, iOS 2종), 삼성 인터넷, 사파리. W1-2 성능 스파이크 결과로 목록 확정.
-- **모니터링**: Sentry(프론트·Edge), 게임 이벤트 로그(시작/클리어/실패/스킵/정보 보기) → 클리어율·스킵률 대시보드.
+- **모니터링**: Sentry(프론트·Edge), 게임 이벤트 로그(도전/클리어/실패/랭킹 등록/재도전) → 참여율·전환율 대시보드.
 
 ---
 
-## 8. 담당과 일정 매핑
+## 8. 작업 순서 (1인 + AI)
 
-| 영역 | 담당 | W3-6 (11/16~12/13) | W7-8 (12/14~12/27) |
-|---|---|---|---|
-| 공통 런타임 + RPG | FE 1 | 런타임, RPG, 공통 씬 | 밸런스 반영, 성능 튜닝 |
-| 포격 | FE 1 (+퍼블 지원) | — | 포격 장르 |
-| 에디터·미리보기·공유 | FE 2 | 에디터 4단계, iframe 미리보기 | 카톡 공유, 발행 흐름 |
-| 픽셀 UI·씬 레이아웃 | 퍼블 | 대화창·카드·HUD | 에셋 교체, 반응형 |
-| 인증·데이터·사진 | BE 1 | 스키마, RLS, 업로드 파이프라인 | 방명록, 신고 |
-| 결제·만료 | BE 2 | PG 연동(테스트 모드) | 웹훅 검증, 만료 Cron |
-| 인프라·OG·관측 | BE 3 | 배포 파이프라인, OG 생성 | Sentry, 이벤트 로그 |
+| 순서 | 작업 | 직접 해야 하는 것 |
+|---|---|---|
+| 1 | 사업자등록·통신판매업 신고 → PG 신청 | 전부 (심사 수 주) |
+| 2 | Astro 5 + Supabase 골격, 구글 로그인, 인앱 → 외부 브라우저 전환 | 구글 OAuth 클라이언트 등록, 도메인 |
+| 3 | 공통 런타임 + 슈팅(무료) + RPG | 플레이 감 확인 |
+| 4 | 에디터·미리보기·발행, 요금제 제한, 공개 기간 계산 | — |
+| 5 | 랭킹·방명록·시상 화면 | — |
+| 6 | 결제 웹훅, 만료·파기 Cron, 메일 | PG 테스트 결제 |
+| 7 | 포격·레이싱 이식 (오픈 베타) | — |
+| 8 | 실기기 테스트, 약관·개인정보처리방침 | 실기기, 문구 최종 확인 |
 
-리스크: FE 1에 게임 전부가 몰린다. 포격이 밀리면 오픈 베타로 이동(기획서 일정과 동일). 퍼블이 장르 render 일부를 맡는 방안 검토.
+리스크: 1인 체제라 PG 심사·카카오 검수 같은 외부 대기가 일정 병목. 1번을 가장 먼저 시작한다.
 
 ---
 
@@ -277,6 +324,6 @@ interface GenreManifest {
 1. 배포: Vercel vs Cloudflare (비용, 국내 응답 속도 비교 필요)
 2. PG: 포트원 경유 vs PG사 직접 (수수료, 심사 기간)
 3. 에디터 UI: React 섬 vs Astro + 순수 TS (FE 2 숙련도 기준)
-4. 무료 플랜 만료 기준: 발행일 기준 vs 예식일 기준
-5. 하객 플레이 기록: 익명 집계만 할지, 방명록 닉네임과 연결할지
+4. 메일 발송 서비스 선택 (Resend 등), 발신 도메인 인증
+5. 시상 화면을 예식장 스크린에 띄우는 방식 (URL 공유 vs 캐스팅)
 6. 레거시 청첩장 페이지(현재 GitHub Pages)를 언제 내릴지
