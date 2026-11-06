@@ -1,7 +1,8 @@
-# 기술 설계 문서 v0.2 — 레트로 게임 모바일 청첩장
+# 기술 설계 문서 v0.3 — 웨딩퀘스트 (레트로 게임 모바일 청첩장)
 
-- 상태: 초안 v0.2 (11/5 요금제·로그인·하객 흐름 결정 반영)
+- 상태: 초안 v0.3 (11/6 Cloudflare 스택·서비스명·새 저장소 결정 반영)
 - 체제: 1인 운영 + AI 보조 (기존 11명 역할 분담은 작업 영역 구분으로만 사용)
+- v0.3 변경: Supabase·Vercel → Cloudflare(Workers·D1·R2·KV·Cron), 구글 로그인 직접 구현(Arctic), 권한은 서버 코드에서 검사, 새 저장소 `wedding-quest`, 사업자등록·PG는 개발 뒤로
 - v0.2 변경: 정보 우선 하객 화면, 랭킹 이벤트, 3단 요금제(무료·45일·90일), 기간 종료 후 파기, 구글 로그인
 - 기준 자료: 기획서 덱, 투자자 데모(`wedding-quest-demo.html`), 기존 저장소 분석 보고서
 - 범위: 베타(12/28 클로즈드) 기준. 레이싱 이후 장르는 확장 지점만 정의
@@ -12,13 +13,15 @@
 
 | 항목 | 결정(안) | 이유 |
 |---|---|---|
-| 웹 프레임워크 | 기존 저장소의 Astro 1.5 → **Astro 5**, `output: 'server'` (필요 페이지만 SSR) | 저장소 유지 결정, 청첩장별 OG 태그는 서버 렌더링이 필수 |
+| 서비스명 | **웨딩퀘스트 / WEDDING QUEST** | 동일 이름 서비스 없음 확인(11/6). 도메인·상표는 선점 필요 |
+| 저장소 | 새 저장소 **`wedding-quest`** (블로그 저장소와 분리) | 개인 블로그와 배포·이력 분리 |
+| 웹 프레임워크 | **Astro 6**, `output: 'server'` + `@astrojs/cloudflare` | 청첩장별 OG 태그는 서버 렌더링이 필수. 어댑터는 처음부터 넣어 Workers 호환성을 개발 중에 확인 |
 | UI 섬(island) | **React** (에디터), 게임은 프레임워크 없는 TS 모듈 | 에디터는 상태가 복잡, 게임은 번들 크기와 성능 우선 |
-| 백엔드 | **Supabase** (Auth · Postgres · Storage · RLS · Edge Functions) | 백엔드 3명이 인프라 대신 도메인 로직에 집중 |
-| 배포 | **Vercel** (대안: Cloudflare Pages) | Astro SSR 어댑터 성숙, 프리뷰 배포로 QA 편함 |
+| 백엔드 | **Cloudflare** — D1(DB) · R2(사진) · KV(캐시) · Cron Triggers | 서버·DB·저장소·예약 작업을 한 계정에서 관리, 1인 운영에 적합. 기존 계정에 **리소스만 따로** 생성 |
+| 배포 | **Cloudflare Workers** (`wrangler deploy`, Worker 이름 `wedding-quest`) | 국내 응답 속도 양호, 무료 한도로 베타 운영 가능 |
 | 게임 렌더링 | Canvas 2D, 논리 해상도 **160×220** 고정 + 정수배 확대 | 데모에서 검증, 저사양에서도 가벼움, 픽셀 느낌 유지 |
 | 게임 엔진 | 외부 엔진 없이 **자체 공통 런타임** (데모 코드 기반) | 15초 게임에 Phaser 등은 과함(번들 수백 KB) |
-| 로그인 | **구글 로그인** (Supabase OAuth). 카카오 로그인은 정식 오픈 때 추가 | 인증된 이메일 확보(영수증·파기 안내). 카카오 이메일 필수 동의는 비즈 앱 심사 필요 |
+| 로그인 | **구글 로그인** (Arctic 라이브러리로 OAuth 직접 구현, 세션은 D1). 카카오 로그인은 정식 오픈 때 추가 | 인증된 이메일 확보(영수증·파기 안내). 카카오 이메일 필수 동의는 비즈 앱 심사 필요 |
 | 요금제 | 무료(15일) · 45일 패키지 2,900원 · 90일 패키지 4,900원 | 5,000원 이하 원칙, 상품 2개로 단순화 |
 | 데이터 보관 | 공개 기간 종료 → 파기 (평생 보관 없음) | 저장 비용·개인정보 부담 최소화 |
 | 결제 | 국내 PG(포트원 경유 검토) → 웹훅으로 플랜 반영 | 카드·간편결제 한 번에, 심사 병행 |
@@ -32,14 +35,14 @@
   /studio (에디터, React island)               /i/{slug}  (SSR: OG 태그 + 초기 데이터)
      │  ▲ 미리보기: iframe + postMessage           │
      ▼  │                                          ▼
- ┌──────────── Astro 5 (Vercel) ─────────────────────────┐
+ ┌──────────── Astro 5 (Cloudflare Workers) ─────────────┐
  │ SSR 페이지 · API 라우트(/api/*) · OG 이미지(/og/{slug}.png) │
  └──────┬─────────────────────────────┬─────────────────┘
         ▼                             ▼
-  Supabase Postgres (RLS)       Supabase Storage (사진: 원본 비공개, 리사이즈본 공개 URL 서명)
-        ▲
-  PG 웹훅 → Edge Function(결제 검증 → plan/expires_at 갱신)
-  스케줄러(Cron) → 만료 처리·파기
+  D1 (SQLite, 권한은 서버 코드)   R2 (사진: 원본 비공개, 웹용은 Worker 경유 제공)
+        ▲                          KV (OG 이미지·공개 스냅샷 캐시)
+  PG 웹훅 → /api/payment-webhook (결제 검증 → plan/expires_at 갱신)
+  Cron Triggers → 공개 전환·만료 파기·안내 메일(Resend)
 ```
 
 - 하객 페이지는 **로그인 없이** 열린다. 데이터는 공개 가능한 필드만 담은 "발행 스냅샷"에서 읽는다.
@@ -47,12 +50,12 @@
 
 ---
 
-## 2. 저장소 구조 (기존 저장소 재편)
+## 2. 저장소 구조 (새 저장소 `wedding-quest`)
 
 ```
 src/
   pages/
-    index.astro              # 서비스 랜딩 (기존 청첩장 페이지는 /legacy 로 이동 후 삭제 예정)
+    index.astro              # 서비스 랜딩
     studio/[id].astro        # 에디터 (로그인 필요)
     i/[slug].astro           # 하객 청첩장 (SSR)
     og/[slug].png.ts         # 카톡 미리보기 이미지
@@ -64,11 +67,14 @@ src/
   scenes/                    # 타이틀·대화·보상·엔딩 (장르 공통 씬)
   editor/                    # React 에디터 컴포넌트
   lib/schema/                # InvitationConfig 타입 + zod 검증 (프론트·서버 공용)
-supabase/
-  migrations/  functions/
+  lib/server/                # db(D1), auth(세션·OAuth), guard(권한 검사), storage(R2)
+migrations/                  # D1 SQL 마이그레이션 (wrangler d1 migrations)
+wrangler.jsonc               # Worker·D1·R2·KV·Cron 바인딩
 ```
 
-- `docs/` 수동 빌드 산출물과 GitHub Pages 배포는 **폐기**한다 (선행 정리 항목).
+- 기존 블로그 저장소(`astro`)는 그대로 두고, 기획 문서와 데모만 참고한다.
+- Cloudflare 리소스 이름: Worker `wedding-quest`, D1 `wedding-quest-db`, R2 `wedding-quest-photos`, KV `wedding-quest-cache`.
+- 화면 개발 동안은 D1·R2 바인딩 없이 임시 데이터로 개발하고, 저장 기능을 붙일 때 리소스를 만든다.
 
 ---
 
@@ -115,22 +121,27 @@ interface PhotoRef { id: string; w: number; h: number }
 
 | 테이블 | 주요 컬럼 | 비고 |
 |---|---|---|
-| `profiles` | id(=auth.uid), email, name, avatar_url, marketing_opt_in, marketing_opt_in_at, created_at | 구글 OAuth에서 채움. 탈퇴 시 삭제 |
+| `users` | id, google_sub(unique), email, name, avatar_url, marketing_opt_in, marketing_opt_in_at, created_at | 구글 OAuth에서 채움. 탈퇴 시 삭제 |
 | `invitations` | id, owner_id, slug(unique), draft jsonb, status(draft/scheduled/published/expired/deleted), plan(free/p45/p90), opens_at, expires_at, published_at | draft = InvitationConfig |
 | `published_snapshots` | invitation_id, version, data jsonb, created_at | 하객이 읽는 공개 데이터. 발행할 때마다 새 버전 |
 | `photos` | id, invitation_id, path_original, path_web, w, h, order | 원본은 비공개 버킷 |
 | `guestbook` | id, invitation_id, nickname, message, created_at, hidden | 패키지 전용. 신고·숨김 |
 | `scores` | id, invitation_id, nickname, score, time_ms, stars, run_token, created_at | 패키지 전용 랭킹. 서버 검증 후 저장 |
+| `sessions` | id(랜덤 토큰 해시), user_id, expires_at, created_at | 로그인 세션. 쿠키에는 원본 토큰(HttpOnly·Secure·SameSite=Lax) |
+| `handoff_tokens` | token, draft json, expires_at | 인앱 → 외부 브라우저 draft 전달용. 10분 만료, 1회 사용 |
+| `run_tokens` | token, invitation_id, issued_at, used_at | 랭킹 일회용 토큰. KV는 무료 쓰기 한도(일 1,000건)가 작아 D1에 저장 |
 | `notifications` | id, owner_id, invitation_id, kind, sent_at | 메일 발송 이력 (중복 방지) |
 | `orders` | id, owner_id, invitation_id, plan, amount, pg_tx_id, status, paid_at | PG 웹훅으로만 갱신. **청첩장 파기 후에도 5년 보관**(전자상거래법), 이메일·금액·일시만 남김 |
 | `reports` | id, invitation_id, reason, created_at | 신고 |
 
-### 3.3 권한 (RLS 초안)
+### 3.3 권한 (서버 코드에서 검사)
 
-- `invitations`, `photos`, `orders`: **소유자만** 읽기·쓰기 (`owner_id = auth.uid()`).
+D1에는 RLS가 없다. 모든 쓰기·비공개 읽기는 API 라우트를 거치고, `lib/server/guard.ts`의 공통 함수(`requireUser`, `requireOwner(invitationId)`)를 반드시 통과한다. 클라이언트가 DB에 직접 접근하는 경로는 없다. 규칙은 아래와 같다.
+
+- `invitations`, `photos`, `orders`: **소유자만** 읽기·쓰기 (`owner_id = 세션 user_id`).
 - `published_snapshots`: 익명 읽기 허용, 단 `invitations.status = 'published' and now() between opens_at and expires_at`인 것만. 공개 전에는 카운트다운용 최소 필드(이름·날짜)만 별도 뷰로.
 - `guestbook`: 익명 **삽입**은 API 라우트(레이트 리밋)를 통해서만, 읽기는 공개 스냅샷과 같은 조건. 소유자는 숨김 가능.
-- `orders`: 클라이언트 쓰기 금지. Edge Function(service role)만 쓴다.
+- `orders`: 결제 웹훅 라우트에서만 쓴다 (PG 서명 검증 후).
 
 ---
 
@@ -143,8 +154,8 @@ interface PhotoRef { id: string; w: number; h: number }
 
 ### 4.2 사진 업로드
 1. 클라이언트에서 긴 변 **2048px로 리사이즈 + EXIF(위치 정보) 제거** 후 업로드.
-2. `/api/upload-url`이 Storage 서명 업로드 URL 발급. 요금제별 장수 제한(무료 3 · 45일 20 · 90일 30)을 여기서 검사.
-3. 웹용(1080px, WebP)과 컷인용(320px)을 Edge Function에서 생성.
+2. `/api/upload`가 R2에 저장 (Worker 경유 업로드 또는 R2 presigned URL). 요금제별 장수 제한(무료 3 · 45일 20 · 90일 30)을 여기서 검사.
+3. 웹용(1080px, WebP)과 컷인용(320px)은 **클라이언트에서 미리 만들어 함께 업로드** (Workers에서 이미지 변환은 유료 기능이라 베타는 클라이언트 처리).
 
 ### 4.3 발행
 1. `/api/publish`: draft를 zod + 장르 매니페스트로 검증 → `published_snapshots`에 새 버전 저장 → 요금제별 `opens_at`/`expires_at` 계산(4.7) → 공개일 전이면 `status='scheduled'`.
@@ -152,15 +163,15 @@ interface PhotoRef { id: string; w: number; h: number }
 3. OG 이미지 캐시 무효화.
 
 ### 4.4 하객 열람
-1. `/i/{slug}` SSR: 최신 스냅샷 조회 → `<meta og:*>` + 초기 데이터 인라인 → 정적 HTML 응답 (CDN 캐시 60초).
+1. `/i/{slug}` SSR: 최신 스냅샷 조회 → `<meta og:*>` + 초기 데이터 인라인 → 정적 HTML 응답 (Cloudflare 캐시 60초, 스냅샷은 KV 캐시).
 2. **첫 화면 = 청첩장**: 표지 · 일시·장소·지도 · 송금 · (패키지) 도전 이벤트 박스 · 사진첩 · 방명록. 전부 SSR HTML이라 게임 로드와 무관하게 즉시 표시.
 3. [도전하기]를 누를 때만 장르 모듈 지연 로드 → 대화 → 게임 → 결과(점수·닉네임 등록) → 랭킹. 실패해도 재도전 또는 청첩장 복귀. "강제 소환" 규칙은 폐지.
 4. 공개일 전 접속: 카운트다운 화면(이름·날짜·D-day만). 기간 종료 후: "종료된 청첩장" 화면.
 
 ### 4.5 결제와 만료
-- 결제창 → PG 웹훅 → Edge Function이 금액·주문 검증 → `orders.paid` + `invitations.plan/expires_at` 갱신. **클라이언트 콜백만으로는 절대 반영하지 않는다.**
+- 결제창 → PG 웹훅 → `/api/payment-webhook`이 금액·주문 검증 → `orders.paid` + `invitations.plan/expires_at` 갱신. **클라이언트 콜백만으로는 절대 반영하지 않는다.**
 - 업그레이드(무료→45일→90일)는 **차액만 결제**. 하향 변경은 허용하지 않는다.
-- 매일 Cron: `opens_at` 도달 시 `published`로 전환, `expires_at` 지나면 `expired` → **즉시 파기**(사진 원본·웹본, 스냅샷, 방명록, 점수, draft). `orders`만 남긴다.
+- 매일 Cron Trigger(scheduled 핸들러): `opens_at` 도달 시 `published`로 전환, `expires_at` 지나면 `expired` → **즉시 파기**(사진 원본·웹본, 스냅샷, 방명록, 점수, draft). `orders`만 남긴다.
 - 파기 전 메일: D-7, D-1 (방명록·랭킹 내려받기 링크 포함), 파기 완료 안내.
 
 ### 4.6 로그인 (작성자만)
@@ -169,7 +180,8 @@ interface PhotoRef { id: string; w: number; h: number }
   - 안드로이드 카톡: `kakaotalk://web/openExternal?url=<현재 URL>` 로 자동 전환
   - iOS 카톡: 같은 스킴을 시도하고, 실패하면 "Safari로 열기" 안내 화면
   - 기타 인앱(인스타·네이버 등): 안내 화면 + 링크 복사
-  - 임시 draft는 URL 파라미터 대신 서버 임시 저장소에 짧은 토큰으로 넘겨 외부 브라우저에서 이어서 편집
+  - 임시 draft는 URL 파라미터 대신 D1 `handoff_tokens`에 저장하고 짧은 토큰으로 넘겨 외부 브라우저에서 이어서 편집
+- 구현: Arctic(Google provider) + PKCE. 콜백에서 `id_token` 검증 → `users` upsert → `sessions` 발급. 별도 인증 서비스 없음.
 - 받는 정보: 이메일·이름·프로필 사진(기본 scope `openid email profile`, 구글 앱 심사 불필요). 동의 화면에 서비스명·도메인·개인정보처리방침 URL 필요.
 - 마케팅 메일 수신 동의는 가입 시 **선택 체크박스로 분리**(정보통신망법). 영수증·공개/파기 안내는 서비스 메일로 동의 없이 발송.
 
@@ -285,7 +297,7 @@ interface GenreManifest {
 ## 6. 보안·개인정보
 
 - 하객 페이지에는 **공개 스냅샷만** 노출. 소유자 ID, 원본 사진 경로, 결제 정보는 스냅샷에 넣지 않는다.
-- 사진 EXIF 제거, 원본 버킷 비공개, 웹용 사진은 만료되는 서명 URL.
+- 사진 EXIF 제거, R2 버킷 비공개. 웹용 사진은 Worker가 공개 기간을 확인한 뒤 내려준다.
 - 계좌번호는 베타에서 저장하지 않는다 (카카오페이 송금 링크만). 기존 저장소에 공개된 계좌번호·실명은 선행 정리에서 제거.
 - 방명록·랭킹 닉네임: 레이트 리밋(IP+slug 기준 분당 3건), 금칙어 필터, 소유자 숨김, 신고. 하객은 로그인 없음.
 - `noindex` 메타 + `robots.txt`로 청첩장 페이지 검색 노출 차단.
@@ -298,30 +310,33 @@ interface GenreManifest {
 - **단위**: zod 스키마, 장르 모듈(시드 고정 시뮬레이션: "봇이 70% 이상 클리어"를 CI 검사로).
 - **E2E**: Playwright 모바일 뷰포트로 에디터 → 구글 로그인 → 발행 → 하객 열람 → 도전 → 랭킹 → 방명록. 인앱 브라우저 UA로 외부 브라우저 전환 분기 검사.
 - **실기기**: 카톡 인앱(안드로이드 2종, iOS 2종), 삼성 인터넷, 사파리. W1-2 성능 스파이크 결과로 목록 확정.
-- **모니터링**: Sentry(프론트·Edge), 게임 이벤트 로그(도전/클리어/실패/랭킹 등록/재도전) → 참여율·전환율 대시보드.
+- **로컬 개발**: `wrangler`/`astro dev`가 D1·R2·KV를 로컬로 흉내낸다(Miniflare). 계정 없이 개발 가능.
+- **모니터링**: Sentry(프론트·Workers), Cloudflare 사용량 알림, 게임 이벤트 로그(도전/클리어/실패/랭킹 등록/재도전) → 참여율·전환율 대시보드.
 
 ---
 
 ## 8. 작업 순서 (1인 + AI)
 
+개발 먼저 진행하고, 사업자등록·통신판매업 신고·PG는 결제 단계 직전에 한다 (11/6 결정). 베타는 무료 요금제만으로도 운영 가능.
+
 | 순서 | 작업 | 직접 해야 하는 것 |
 |---|---|---|
-| 1 | 사업자등록·통신판매업 신고 → PG 신청 | 전부 (심사 수 주) |
-| 2 | Astro 5 + Supabase 골격, 구글 로그인, 인앱 → 외부 브라우저 전환 | 구글 OAuth 클라이언트 등록, 도메인 |
-| 3 | 공통 런타임 + 슈팅(무료) + RPG | 플레이 감 확인 |
-| 4 | 에디터·미리보기·발행, 요금제 제한, 공개 기간 계산 | — |
-| 5 | 랭킹·방명록·시상 화면 | — |
-| 6 | 결제 웹훅, 만료·파기 Cron, 메일 | PG 테스트 결제 |
-| 7 | 포격·레이싱 이식 (오픈 베타) | — |
-| 8 | 실기기 테스트, 약관·개인정보처리방침 | 실기기, 문구 최종 확인 |
+| 1 | 새 저장소 `wedding-quest`: Astro 6 + Cloudflare 어댑터 골격 (Astro 7은 Node 22.23+ 필요, Node 업그레이드 후 올림) | — |
+| 2 | 공통 런타임 + 슈팅(무료) + RPG, 하객 화면(임시 데이터) | 플레이 감 확인 |
+| 3 | 에디터·미리보기 (임시 저장은 브라우저) | — |
+| 4 | D1·R2 연결, 구글 로그인, 인앱 → 외부 브라우저 전환, 발행·공개 기간 계산 | Cloudflare 리소스 생성, 구글 OAuth 클라이언트, 도메인 |
+| 5 | 랭킹·방명록·사진첩, 요금제 제한, 시상 화면 | — |
+| 6 | 사업자등록·통신판매업 → PG 신청 → 결제 웹훅 | 전부 (심사 수 주) |
+| 7 | 만료·파기 Cron, 안내 메일(Resend) | 발신 도메인 인증 |
+| 8 | 포격·레이싱 이식, 실기기 테스트, 약관·개인정보처리방침 | 실기기, 문구 최종 확인 |
 
-리스크: 1인 체제라 PG 심사·카카오 검수 같은 외부 대기가 일정 병목. 1번을 가장 먼저 시작한다.
+리스크: PG 심사가 수 주 걸리므로 4단계가 끝날 무렵에는 6단계 서류 작업을 시작한다.
 
 ---
 
 ## 9. 열린 질문 (11/12 리뷰에서 결정)
 
-1. 배포: Vercel vs Cloudflare (비용, 국내 응답 속도 비교 필요)
+1. ~~배포: Vercel vs Cloudflare~~ → Cloudflare로 결정 (11/6)
 2. PG: 포트원 경유 vs PG사 직접 (수수료, 심사 기간)
 3. 에디터 UI: React 섬 vs Astro + 순수 TS (FE 2 숙련도 기준)
 4. 메일 발송 서비스 선택 (Resend 등), 발신 도메인 인증

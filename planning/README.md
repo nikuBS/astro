@@ -4,7 +4,7 @@
 
 | 자료 | 위치 | 설명 |
 |---|---|---|
-| 기술 설계 문서 v0.2 | [tech-design-v0.2.md](tech-design-v0.2.md) | 아키텍처, 데이터 모델, 게임 런타임, 보안, 일정 매핑 |
+| 기술 설계 문서 v0.3 | [tech-design-v0.3.md](tech-design-v0.3.md) | Cloudflare 스택, 아키텍처, 데이터 모델, 게임 런타임, 보안, 일정 매핑 |
 | 시장 조사 (초안) | [market-research.md](market-research.md) | 모바일 청첩장 가격·기능 비교, 게임형 사례 |
 | 투자자 데모 | [demo/index.html](demo/index.html) | 작성자 에디터 + 하객 청첩장, 플레이 가능한 미니게임 3종 |
 
